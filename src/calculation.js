@@ -1,21 +1,40 @@
 import React from 'react';
 import axios from 'axios';
 
-function Calculation(arr) {
+function Calculation(miniLeagueID) {
+
+    axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`)
+        .then(league => {
+            let miniLeagueData = league;
+            let miniLeaguePlayersIDs = league.data.standings.results.map(team => team.entry);
+            return {miniLeagueData, miniLeaguePlayersIDs};
+        })
+        .then(data => {
+            let miniLeagueTeams = [];
+            data.miniLeaguePlayersIDs.map(async teamID => {
+                const url = `https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/entry/${teamID}/event/3/picks/`
+                axios.get(url).then(response => {
+                    miniLeagueTeams.push([response.data.picks])
+                })
+            })
+            return miniLeagueTeams;
+        })
+        .then(async miniLeagueTeams => {
+            let playerPointsData = await axios.get('https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/3/live/')
+            return {miniLeagueTeams, playerPointsData}
+        })
+        .then(({miniLeagueTeams, playerPointsData}) => {
+            let miniLeagueTeamsPoints = [];
+            for(let i = 0; i < miniLeagueTeams.length; i++) {
+                let pointsSum = 0;
+                for(let j = 0; j < miniLeagueTeams[i].length; j++) {
+                  pointsSum += playerPointsData.elements[miniLeagueTeams[i][j].element - 1].stats.total_points;
+                }
+                miniLeagueTeamsPoints.push(pointsSum);
+            }
+        })
 
 
-    const array = arr.map(async teamID => {
-        const url = `https://cors-anywhere.herokuapp.com/https://fantasy.premierleague.com/api/entry/${teamID}/event/3/picks/`
-        let response = await axios.get(url)
-        //console.log('caoooooooooooooooooooooooooooooooooooooooooooooooooo');
-        //const arrayFinal = response.picks.map(player => [player.element, player.is_captain, player.is_vice_captain])
-        return response
-    })
-    
-    console.log(array);
-    console.log('hejhej')
 }
-
-//Calculation([4503963,1026674,3656196,2318179,678620,4593395,2964278,4330478,3040019,3024256,729896,4952700,1075860,2772400,898078,4568990,1180400,2942551,1017127,1684496]);
 
 export default Calculation;
