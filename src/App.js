@@ -103,16 +103,6 @@ function App() {
                   'MID': 0,
                   'FWD': 0
                 }
-                let didPlayBenchPlayers = {
-                  'DEF': 0,
-                  'MID': 0,
-                  'FWD': 0
-                }
-                let didNotPlayBenchPlayers = {
-                  'DEF': 0,
-                  'MID': 0,
-                  'FWD': 0
-                }
                 let playCounter = 0;
                 let minimumPlayingPositions = false;
                 let didFirstGKPlayed = true;
@@ -170,10 +160,8 @@ function App() {
                 }
                 //add captain(or vicecaptain) points after the iteration of the first 11 players
                 if(didCaptainPlay) {
-                  console.log('kapiten je igrao')
                   pointsSum += captainPoints
                 } else {
-                  console.log('kapiten nije igrao')
                   pointsSum += viceCaptainPoints
                 }
                 //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
@@ -185,54 +173,95 @@ function App() {
                   realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                   playCounter++;
                 }
-                //checking if we already have too many players that did not play
-                for(let j = 12; j < 15; j++) {
+                let j = 12;
+                while(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF < 3 && j < 15) {
                   let playerStats = playerPointsData.data.elements[testingTeams[i].picks[j].element - 1].stats;
                   let playerTeamActivity = testingTeams[i].picks[j];
-                  if(playerStats.minutes <= 0) {
-                    didNotPlayBenchPlayers[playerTeamActivity.element_type] += 1
-                  } else {
-                    didPlayBenchPlayers[playerTeamActivity.element_type] += 1
+                  if(playerTeamActivity.element_type === 'DEF') {
+                    if(playerStats.minutes > 0) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      testingTeams[i].picks.splice(j, 1);
+                    }
                   }
+                  if(j === 14) {
+                    if(realTeamPlayingPositions.DEF === 0) {
+                      pointsSum += 0;
+                      realTeamPlayingPositions['DEF'] += 3;
+                      playCounter += 3;
+                      didNotPlayFieldPlayers['DEF'] -= 3;
+                    } else if(realTeamPlayingPositions.DEF === 1) {
+                      pointsSum += 0;
+                      realTeamPlayingPositions['DEF'] += 2;
+                      playCounter += 2;
+                      didNotPlayFieldPlayers['DEF'] -= 2;
+                    } else if(realTeamPlayingPositions.DEF === 2) {
+                      pointsSum += 0;
+                      realTeamPlayingPositions['DEF'] += 1;
+                      playCounter += 1;
+                      didNotPlayFieldPlayers['DEF'] -= 1;
+                    }
+                  }
+                  j++;
                 }
-                //defence
-                if(didNotPlayFieldPlayers['DEF'] + didNotPlayBenchPlayers['DEF'] === 3) {
-                  pointsSum += 0;
-                  realTeamPlayingPositions['DEF'] += 1;
-                  playCounter++;
-                  didNotPlayFieldPlayers['DEF'] -= 1;
-                } else if(didNotPlayFieldPlayers['DEF'] + didNotPlayBenchPlayers['DEF'] === 4) {
-                  pointsSum += 0;
-                  realTeamPlayingPositions['DEF'] += 2;
-                  playCounter++;
-                  didNotPlayFieldPlayers['DEF'] -= 2;
-                } else if(didNotPlayFieldPlayers['DEF'] + didNotPlayBenchPlayers['DEF'] === 5) {
-                  pointsSum += 0;
-                  realTeamPlayingPositions['DEF'] += 3;
-                  playCounter++;
-                  didNotPlayFieldPlayers['DEF'] -= 3;
+                j =  12;
+                while(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID < 2 && j < 15) {
+                  let playerStats = playerPointsData.data.elements[testingTeams[i].picks[j].element - 1].stats;
+                  let playerTeamActivity = testingTeams[i].picks[j];
+                  if(playerTeamActivity.element_type === 'MID') {
+                    if(playerStats.minutes > 0) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      testingTeams[i].picks.splice(j, 1);
+                    }
+                  }
+                  if(j === 14) {
+                    if(realTeamPlayingPositions.MID === 0) {
+                      pointsSum += 0;
+                      realTeamPlayingPositions['MID'] += 2;
+                      playCounter += 2;
+                      didNotPlayFieldPlayers['MID'] -= 2;
+                    } else if(realTeamPlayingPositions.MID === 1) {
+                      pointsSum += 0;
+                      realTeamPlayingPositions['MID'] += 1;
+                      playCounter += 1;
+                      didNotPlayFieldPlayers['MID'] -= 1;
+                    } 
+                  }
+                  j++;
                 }
-                //midfield
-                if(didNotPlayFieldPlayers['MID'] + didNotPlayBenchPlayers['MID'] === 4) {
-                  pointsSum += 0;
-                  realTeamPlayingPositions['MID'] += 1;
-                  playCounter++;
-                  didNotPlayFieldPlayers['MID'] -= 1;
-                } else if(didNotPlayFieldPlayers['MID'] + didNotPlayBenchPlayers['MID'] === 5) {
-                  pointsSum += 0;
-                  realTeamPlayingPositions['MID'] += 2;
-                  playCounter++;
-                  didNotPlayFieldPlayers['MID'] -= 2;
-                } 
-                //forward
-                if(didNotPlayFieldPlayers['FWD'] + didNotPlayBenchPlayers['FWD'] === 3) {
-                  pointsSum += 0;
-                  realTeamPlayingPositions['FWD'] += 1;
-                  playCounter++;
-                  didNotPlayFieldPlayers['FWD'] -= 1;
-                } 
+                j = 12;
+                while(teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD < 1 && j < 15) {
+                  let playerStats = playerPointsData.data.elements[testingTeams[i].picks[j].element - 1].stats;
+                  let playerTeamActivity = testingTeams[i].picks[j];
+                  if(playerTeamActivity.element_type === 'FWD') {
+                    if(playerStats.minutes > 0) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      testingTeams[i].picks.splice(j, 1);
+                    }
+                  }
+                  if(j === 14) {
+                    if(realTeamPlayingPositions.MID === 0) {
+                      pointsSum += 0;
+                      realTeamPlayingPositions['FWD'] += 1;
+                      playCounter += 1;
+                      didNotPlayFieldPlayers['FWD'] -= 1;
+                    } 
+                  }
+                  j++;
+                }
                 //looping our 3 field subs
-                for(let j = 12; j < 15; j++) {
+                for(let j = 12; j < testingTeams[i].picks.length; j++) {
                   let playerStats = playerPointsData.data.elements[testingTeams[i].picks[j].element - 1].stats;
                   let playerTeamActivity = testingTeams[i].picks[j];
                   if(playerStats.minutes <= 0) continue;
@@ -241,12 +270,7 @@ function App() {
                   if(realTeamPlayingPositions.DEF >= 3 && realTeamPlayingPositions.MID >= 2 && realTeamPlayingPositions.FWD >=1) {
                     minimumPlayingPositions = true;
                   }
-                  console.log(playCounter)
-                  console.log(minimumPlayingPositions)
-
                   if(minimumPlayingPositions) {
-                    console.log('ma ovde obojica')
-                    console.log('ovo su im poeni:' + playerStats.total_points)
                     pointsSum += playerStats.total_points;
                     realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                     playCounter++;
@@ -254,102 +278,28 @@ function App() {
                     positionsOnBench[playerTeamActivity.element_type] -= 1;
                     continue;
                   }
-
-
-                  if((teamPlayingPositions['DEF'] - didNotPlayFieldPlayers['DEF'] >= 3) && (teamPlayingPositions['MID'] - didNotPlayFieldPlayers['MID'] >= 2) && (teamPlayingPositions['FWD'] - didNotPlayFieldPlayers['FWD'] >= 1)) {
-                    pointsSum += playerStats.total_points;
-                    realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                    playCounter++;
-                    didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                    positionsOnBench[playerTeamActivity.element_type] -= 1;
-                    continue;
-                  }
-                  if(playerTeamActivity.element_type === 'DEF') {
-                    if(didNotPlayFieldPlayers['DEF'] > 0) {
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    } else if((realTeamPlayingPositions['MID'] + didPlayBenchPlayers['MID'] >= 2) && didNotPlayFieldPlayers['FWD'] > didPlayBenchPlayers['FWD']) {
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    } else if((realTeamPlayingPositions['FWD'] + didPlayBenchPlayers['FWD'] >= 1) && didNotPlayFieldPlayers['MID'] > didPlayBenchPlayers['MID']) {
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    }
-                  } else if(playerTeamActivity.element_type === 'MID') {
-                    if(didNotPlayFieldPlayers['MID'] > 0) {
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    } else if((realTeamPlayingPositions['DEF'] + didPlayBenchPlayers['DEF'] >= 3) && didNotPlayFieldPlayers['FWD'] > didPlayBenchPlayers['FWD']) {
-                      console.log('tu')
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    } else if((realTeamPlayingPositions['FWD'] + didPlayBenchPlayers['FWD'] >= 1) && didNotPlayFieldPlayers['DEF'] > didPlayBenchPlayers['DEF']) {
-                      console.log('ovde bre')
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    } 
-                  } else if(playerTeamActivity.element_type === 'FWD') {
-                    if(didNotPlayFieldPlayers['FWD'] > 0) {
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    } else if((realTeamPlayingPositions['DEF'] + didPlayBenchPlayers['DEF'] >= 3) && didNotPlayFieldPlayers['MID'] > didPlayBenchPlayers['MID']) {
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    } else if((realTeamPlayingPositions['MID'] + didPlayBenchPlayers['MID'] >= 2) && didNotPlayFieldPlayers['DEF'] > didPlayBenchPlayers['DEF']) {
-                      pointsSum += playerStats.total_points;
-                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                      playCounter++;
-                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                      positionsOnBench[playerTeamActivity.element_type] -= 1;
-                      continue;
-                    }
-                  }
+                  
                 }
-
+                 
+                  
+                
+        
+                
                 testingTeamsPoints['entry'] = testingTeams[i].entry;
                 testingTeamsPoints['points'] = pointsSum
                 //testingTeamsPoints['points'] = pointsSum + testingTeams[i].total_points - testingTeams[i].event_total;
                 testingTeamsPoints['player_name'] = testingTeams[i].player_name; 
                 testingTeamsPoints['entry_name'] = testingTeams[i].entry_name; 
                 testingTeamsPointsArray.push(testingTeamsPoints)
-            }
-            setPoints(testingTeamsPointsArray);
-        })
+              }
+              setPoints(testingTeamsPointsArray);
+          })
+  
+  
+  }
 
 
-}
+  
 
   return (
     <div className="App">
