@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import './App.css';
 import axios from 'axios';
 import { players } from './players';
+import {testingTeams} from './testing';
 import { gameweekFixtures } from './gameweekFixtures';
+
+//zameni testingTeams sa miniLeagueTeams
 
 function App() {
 
@@ -60,7 +63,7 @@ function App() {
     axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`)
         .then(league => {
             let miniLeagueData = league;
-            let miniLeaguePlayersData = league.data.standings.results.map(team => ({'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
+            let miniLeaguePlayersData = league.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
             return {miniLeagueData, miniLeaguePlayersData};
         })
         .then(data => {
@@ -80,87 +83,269 @@ function App() {
             return {miniLeagueTeams, playerPointsData}
         })
         .then(({miniLeagueTeams, playerPointsData}) => {
-            let miniLeagueTeamsPointsArray = [];
             console.log(miniLeagueTeams)
-            console.log(playerPointsData)
-            for(let i = 0; i < miniLeagueTeams.length; i++) {
-                let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
-                console.log(teamPlayingPositions);
+            let testingTeamsPointsArray = [];
+            for(let i = 0; i < testingTeams.length; i++) {
+                let teamPlayingPositions = teamAnalyze(testingTeams[i].picks);
+                let positionsOnBench = {
+                  'DEF': 5 - teamPlayingPositions.DEF,
+                  'MID': 5 - teamPlayingPositions.MID,
+                  'FWD': 3 - teamPlayingPositions.FWD
+                }
                 let realTeamPlayingPositions = {
                   'GKP': 0,
                   'DEF': 0,
                   'MID': 0,
                   'FWD': 0
                 };
-                let pointsSum = 0;
-                let miniLeagueTeamsPoints = {};
+                let didNotPlayFieldPlayers = {
+                  'DEF': 0,
+                  'MID': 0,
+                  'FWD': 0
+                }
+                let didPlayBenchPlayers = {
+                  'DEF': 0,
+                  'MID': 0,
+                  'FWD': 0
+                }
+                let didNotPlayBenchPlayers = {
+                  'DEF': 0,
+                  'MID': 0,
+                  'FWD': 0
+                }
                 let playCounter = 0;
-                let didFirstGKPlay = true;
-                let counter = 0;
+                let minimumPlayingPositions = false;
+                let didFirstGKPlayed = true;
                 let captainPoints = 0;
-                let didCaptainPlay = false;
                 let viceCaptainPoints = 0;
+                let didCaptainPlay = true;
+                let pointsSum = 0;
+                let testingTeamsPoints = {};
                 let dateNow = new Date();
-                for(let j = 0; j < miniLeagueTeams[i].picks.length; j++) {
-                  let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
-                  let playerTeamActivity = miniLeagueTeams[i].picks[j];
+                for(let j = 0; j < 11; j++) {
+                  let playerStats = playerPointsData.data.elements[testingTeams[i].picks[j].element - 1].stats;
+                  let playerTeamActivity = testingTeams[i].picks[j];
                   let hisGameStarted = true;
+                  let hisGameEnded = false;
                   for(let g = 0; g < 10; g++) {
                     if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
                       let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
+                      //checking if his game started
                       if (dateNow < kickoffDate) {
                         hisGameStarted = false;
                         break;
                       }
+                      //checking if his game ended
+                      kickoffDate.setHours(kickoffDate.getHours() + 2);
+                      if(dateNow > kickoffDate) {
+                        hisGameEnded = true;
+                      }
                     }
                   }
-                  counter++;
-                  if(!hisGameStarted) continue;
-                  if(playCounter === 11) break;
-                  if(j === 0) {
+                  if(playerTeamActivity.is_captain) {
+                    captainPoints = playerStats.total_points;
                     if(playerStats.minutes <= 0) {
-                      didFirstGKPlay = false;
+                      didCaptainPlay = false;
                     }
-                  }
-                  if(!didFirstGKPlay && j === 11) {
-                    pointsSum += playerStats.total_points;
-                    playCounter++;
-                    realTeamPlayingPositions['GKP'] += 1;
-                    continue;
-                  }
-                
-                  if(playerTeamActivity.is_vice_captain) {
+                  } else if(playerTeamActivity.is_vice_captain) {
                     viceCaptainPoints = playerStats.total_points;
                   }
-                  if(playerTeamActivity.is_captain && playerStats.minutes > 0) {
-                    didCaptainPlay = true;
-                    captainPoints = playerStats.total_points;
-                  }
-                  if(counter === 11) {
-                    if(didCaptainPlay) {
-                      pointsSum += captainPoints;
-                    } else {
-                      pointsSum += viceCaptainPoints;
+                  //if his game did not start just skip him
+                  if(!hisGameStarted) continue;
+                  //if his game ended and player did not enter the game
+                  if(hisGameEnded && playerStats.minutes <= 0) {
+                    if(playerTeamActivity.element_type === 'GKP') {
+                      didFirstGKPlayed = false;
+                      continue;
                     }
+                    didNotPlayFieldPlayers[playerTeamActivity.element_type] += 1
+                    continue;   
                   }
-                  if(playerStats.minutes > 0 && playCounter < 11 && playerTeamActivity.position <= 11) {
+                  if(playerStats.minutes > 0 ) {
                     pointsSum += playerStats.total_points;
-                    playCounter++;
                     realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                    playCounter++;
+                    continue;
+                  }    
+                }
+                //add captain(or vicecaptain) points after the iteration of the first 11 players
+                if(didCaptainPlay) {
+                  console.log('kapiten je igrao')
+                  pointsSum += captainPoints
+                } else {
+                  console.log('kapiten nije igrao')
+                  pointsSum += viceCaptainPoints
+                }
+                //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
+                if(!didFirstGKPlayed) {
+                  //12th element in picks array is the reserve goalkeeper
+                  let playerStats = playerPointsData.data.elements[testingTeams[i].picks[11].element - 1].stats;
+                  let playerTeamActivity = testingTeams[i].picks[11];
+                  pointsSum += playerStats.total_points;
+                  realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                  playCounter++;
+                }
+                //checking if we already have too many players that did not play
+                for(let j = 12; j < 15; j++) {
+                  let playerStats = playerPointsData.data.elements[testingTeams[i].picks[j].element - 1].stats;
+                  let playerTeamActivity = testingTeams[i].picks[j];
+                  if(playerStats.minutes <= 0) {
+                    didNotPlayBenchPlayers[playerTeamActivity.element_type] += 1
+                  } else {
+                    didPlayBenchPlayers[playerTeamActivity.element_type] += 1
+                  }
+                }
+                //defence
+                if(didNotPlayFieldPlayers['DEF'] + didNotPlayBenchPlayers['DEF'] === 3) {
+                  pointsSum += 0;
+                  realTeamPlayingPositions['DEF'] += 1;
+                  playCounter++;
+                  didNotPlayFieldPlayers['DEF'] -= 1;
+                } else if(didNotPlayFieldPlayers['DEF'] + didNotPlayBenchPlayers['DEF'] === 4) {
+                  pointsSum += 0;
+                  realTeamPlayingPositions['DEF'] += 2;
+                  playCounter++;
+                  didNotPlayFieldPlayers['DEF'] -= 2;
+                } else if(didNotPlayFieldPlayers['DEF'] + didNotPlayBenchPlayers['DEF'] === 5) {
+                  pointsSum += 0;
+                  realTeamPlayingPositions['DEF'] += 3;
+                  playCounter++;
+                  didNotPlayFieldPlayers['DEF'] -= 3;
+                }
+                //midfield
+                if(didNotPlayFieldPlayers['MID'] + didNotPlayBenchPlayers['MID'] === 4) {
+                  pointsSum += 0;
+                  realTeamPlayingPositions['MID'] += 1;
+                  playCounter++;
+                  didNotPlayFieldPlayers['MID'] -= 1;
+                } else if(didNotPlayFieldPlayers['MID'] + didNotPlayBenchPlayers['MID'] === 5) {
+                  pointsSum += 0;
+                  realTeamPlayingPositions['MID'] += 2;
+                  playCounter++;
+                  didNotPlayFieldPlayers['MID'] -= 2;
+                } 
+                //forward
+                if(didNotPlayFieldPlayers['FWD'] + didNotPlayBenchPlayers['FWD'] === 3) {
+                  pointsSum += 0;
+                  realTeamPlayingPositions['FWD'] += 1;
+                  playCounter++;
+                  didNotPlayFieldPlayers['FWD'] -= 1;
+                } 
+                //looping our 3 field subs
+                for(let j = 12; j < 15; j++) {
+                  let playerStats = playerPointsData.data.elements[testingTeams[i].picks[j].element - 1].stats;
+                  let playerTeamActivity = testingTeams[i].picks[j];
+                  if(playerStats.minutes <= 0) continue;
+                  if(playCounter === 11) break;
+                  if(didNotPlayFieldPlayers.DEF === 0 && didNotPlayFieldPlayers.MID === 0 && didNotPlayFieldPlayers.FWD === 0) break;
+                  if(realTeamPlayingPositions.DEF >= 3 && realTeamPlayingPositions.MID >= 2 && realTeamPlayingPositions.FWD >=1) {
+                    minimumPlayingPositions = true;
+                  }
+                  console.log(playCounter)
+                  console.log(minimumPlayingPositions)
+
+                  if(minimumPlayingPositions) {
+                    console.log('ma ovde obojica')
+                    console.log('ovo su im poeni:' + playerStats.total_points)
+                    pointsSum += playerStats.total_points;
+                    realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                    playCounter++;
+                    didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                    positionsOnBench[playerTeamActivity.element_type] -= 1;
                     continue;
                   }
-                  
-                  
-                  
+
+
+                  if((teamPlayingPositions['DEF'] - didNotPlayFieldPlayers['DEF'] >= 3) && (teamPlayingPositions['MID'] - didNotPlayFieldPlayers['MID'] >= 2) && (teamPlayingPositions['FWD'] - didNotPlayFieldPlayers['FWD'] >= 1)) {
+                    pointsSum += playerStats.total_points;
+                    realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                    playCounter++;
+                    didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                    positionsOnBench[playerTeamActivity.element_type] -= 1;
+                    continue;
+                  }
+                  if(playerTeamActivity.element_type === 'DEF') {
+                    if(didNotPlayFieldPlayers['DEF'] > 0) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    } else if((realTeamPlayingPositions['MID'] + didPlayBenchPlayers['MID'] >= 2) && didNotPlayFieldPlayers['FWD'] > didPlayBenchPlayers['FWD']) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    } else if((realTeamPlayingPositions['FWD'] + didPlayBenchPlayers['FWD'] >= 1) && didNotPlayFieldPlayers['MID'] > didPlayBenchPlayers['MID']) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    }
+                  } else if(playerTeamActivity.element_type === 'MID') {
+                    if(didNotPlayFieldPlayers['MID'] > 0) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    } else if((realTeamPlayingPositions['DEF'] + didPlayBenchPlayers['DEF'] >= 3) && didNotPlayFieldPlayers['FWD'] > didPlayBenchPlayers['FWD']) {
+                      console.log('tu')
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    } else if((realTeamPlayingPositions['FWD'] + didPlayBenchPlayers['FWD'] >= 1) && didNotPlayFieldPlayers['DEF'] > didPlayBenchPlayers['DEF']) {
+                      console.log('ovde bre')
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    } 
+                  } else if(playerTeamActivity.element_type === 'FWD') {
+                    if(didNotPlayFieldPlayers['FWD'] > 0) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    } else if((realTeamPlayingPositions['DEF'] + didPlayBenchPlayers['DEF'] >= 3) && didNotPlayFieldPlayers['MID'] > didPlayBenchPlayers['MID']) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    } else if((realTeamPlayingPositions['MID'] + didPlayBenchPlayers['MID'] >= 2) && didNotPlayFieldPlayers['DEF'] > didPlayBenchPlayers['DEF']) {
+                      pointsSum += playerStats.total_points;
+                      realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                      playCounter++;
+                      didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                      positionsOnBench[playerTeamActivity.element_type] -= 1;
+                      continue;
+                    }
+                  }
                 }
-                console.log(playCounter);
-                miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry; 
-                miniLeagueTeamsPoints['points'] = pointsSum + miniLeagueTeams[i].total_points;
-                miniLeagueTeamsPoints['player_name'] = miniLeagueTeams[i].player_name; 
-                miniLeagueTeamsPoints['entry_name'] = miniLeagueTeams[i].entry_name; 
-                miniLeagueTeamsPointsArray.push(miniLeagueTeamsPoints)
+
+                testingTeamsPoints['entry'] = testingTeams[i].entry;
+                testingTeamsPoints['points'] = pointsSum
+                //testingTeamsPoints['points'] = pointsSum + testingTeams[i].total_points - testingTeams[i].event_total;
+                testingTeamsPoints['player_name'] = testingTeams[i].player_name; 
+                testingTeamsPoints['entry_name'] = testingTeams[i].entry_name; 
+                testingTeamsPointsArray.push(testingTeamsPoints)
             }
-            setPoints(miniLeagueTeamsPointsArray);
+            setPoints(testingTeamsPointsArray);
         })
 
 
