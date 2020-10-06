@@ -39,22 +39,22 @@ export const testingTeams = [
       "team": 5
     },
     {
-      "element": 141,
+      "element": 20,
       "position": 5,
       "multiplier": 1,
       "is_captain": false,
       "is_vice_captain": false,
       "element_type": "MID",
-      "team": 6
+      "team": 1
     },
     {
-      "element": 254,
+      "element": 23,
       "position": 6,
       "multiplier": 2,
       "is_captain": true,
       "is_vice_captain": false,
       "element_type": "MID",
-      "team": 11
+      "team": 1
     },
     {
       "element": 272,
@@ -75,22 +75,22 @@ export const testingTeams = [
       "team": 9
     },
     {
-      "element": 164,
+      "element": 6,
       "position": 9,
       "multiplier": 1,
       "is_captain": false,
       "is_vice_captain": false,
       "element_type": "FWD",
-      "team": 7
+      "team": 1
     },
     {
-      "element": 68,
+      "element": 50,
       "position": 10,
       "multiplier": 1,
       "is_captain": false,
       "is_vice_captain": false,
       "element_type": "FWD",
-      "team": 3
+      "team": 2
     },
     {
       "element": 460,

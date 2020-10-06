@@ -1,3 +1,56 @@
+export const gameweekDates = [
+    {
+      gameweekNo: 1,
+      deadlineDate: "2020-09-12T10:00:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 2,
+      deadlineDate: "2020-09-19T10:00:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 3,
+      deadlineDate: "2020-09-26T10:00:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 4,
+      deadlineDate: "2020-10-03T10:00:00Z",
+      firstGameweekAPIUpdate: "2020-10-03T23:00:00Z"
+    },
+    {
+      gameweekNo: 5,
+      deadlineDate: "2020-10-17T10:00:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 6,
+      deadlineDate: "2020-10-24T10:00:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 7,
+      deadlineDate: "2020-10-31T10:00:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 8,
+      deadlineDate: "2020-11-07T12:30:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 9,
+      deadlineDate: "2020-11-21T12:30:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+    {
+      gameweekNo: 10,
+      deadlineDate: "2020-11-28T12:30:00Z",
+      firstGameweekAPIUpdate: ""
+    },
+]
+
 export const fixtures = [{
     "code": 2128286,
     "event": null,
