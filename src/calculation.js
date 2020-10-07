@@ -15,6 +15,7 @@ async function Calculation(miniLeagueID) {
         }
     }
     let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+    let miniLeagueName = miniLeagueData.data.league.name;
     let next_page = 2;
     let has_next = miniLeagueData.data.standings.has_next;
     while(has_next) {
@@ -32,14 +33,9 @@ async function Calculation(miniLeagueID) {
         miniLeagueTeams.push({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
     });
     let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
-    let miniLeagueTeamsPointsArray = [];
+    let miniLeagueTeamsDataArray = [];
     for(let i = 0; i < miniLeagueTeams.length; i++) {
         let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
-        let positionsOnBench = {
-            'DEF': 5 - teamPlayingPositions.DEF,
-            'MID': 5 - teamPlayingPositions.MID,
-            'FWD': 3 - teamPlayingPositions.FWD
-        }
         let realTeamPlayingPositions = {
             'GKP': 0,
             'DEF': 0,
@@ -63,71 +59,72 @@ async function Calculation(miniLeagueID) {
         let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
         let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10);
-        if(activeChip !== 'bboost') {
-            for(let j = 0; j < 11; j++) {
-                let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
-                let playerTeamActivity = miniLeagueTeams[i].picks[j];
-                let hisGameStarted = true;
-                let hisGameEnded = false;
-                for(let g = 0; g < 10; g++) {
-                    if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
-                        let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
-                        //checking if his game started
-                        if (dateNow < kickoffDate) {
-                            hisGameStarted = false;
-                            break;
-                        }
-                        //checking if his game ended
-                        kickoffDate.setHours(kickoffDate.getHours() + 2);
-                        if(dateNow > kickoffDate) {
-                            hisGameEnded = true;
-                        }
+        for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
+            let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
+            let playerTeamActivity = miniLeagueTeams[i].picks[j];
+            let hisGameStarted = true;
+            let hisGameEnded = false;
+            for(let g = 0; g < 10; g++) {
+                if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
+                    let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
+                    //checking if his game started
+                    if (dateNow < kickoffDate) {
+                        hisGameStarted = false;
+                        break;
+                    }
+                    //checking if his game ended
+                    kickoffDate.setHours(kickoffDate.getHours() + 2);
+                    if(dateNow > kickoffDate) {
+                        hisGameEnded = true;
                     }
                 }
-                if(playerTeamActivity.is_captain) {
-                    if(playerStats.minutes > 0) {
-                        didCaptainPlay = true;
-                        captainPoints = playerStats.total_points;
-                    }
-                } else if(playerTeamActivity.is_vice_captain) {
-                    if(playerStats.minutes > 0) {
-                        didViceCaptainPlay = true;
-                        viceCaptainPoints = playerStats.total_points;
-                    }
+            }
+            if(playerTeamActivity.is_captain) {
+                if(playerStats.minutes > 0) {
+                    didCaptainPlay = true;
+                    captainPoints = playerStats.total_points;
                 }
-                //if his game did not start just skip him
-                if(!hisGameStarted) continue;
-                //if his game ended and player did not enter the game
-                if(hisGameEnded && playerStats.minutes <= 0) {
-                    if(playerTeamActivity.element_type === 'GKP') {
-                        didFirstGKPlayed = false;
-                        continue;
-                    }
-                    didNotPlayFieldPlayers[playerTeamActivity.element_type] += 1
-                    continue;   
+            } else if(playerTeamActivity.is_vice_captain) {
+                if(playerStats.minutes > 0) {
+                    didViceCaptainPlay = true;
+                    viceCaptainPoints = playerStats.total_points;
                 }
-                if(playerStats.minutes > 0 ) {
-                    pointsSum += playerStats.total_points;
-                    realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                    playCounter++;
+            }
+            //if his game did not start just skip him
+            if(!hisGameStarted) continue;
+            //if his game ended and player did not enter the game
+            if(hisGameEnded && playerStats.minutes <= 0) {
+                if(playerTeamActivity.element_type === 'GKP') {
+                    didFirstGKPlayed = false;
                     continue;
-                }    
-            }
-            //add captain(or vicecaptain) points after the iteration of the first 11 players
-            if(didCaptainPlay) {
-                if(activeChip === '3xc') {
-                    pointsSum += captainPoints * 2
-                } else {
-                    pointsSum += captainPoints 
                 }
-            } else if(didViceCaptainPlay) {
-                if(activeChip === '3xc') {
-                    pointsSum += viceCaptainPoints * 2
-                } else {
-                    pointsSum += viceCaptainPoints
-                }
+                didNotPlayFieldPlayers[playerTeamActivity.element_type] += 1
+                continue;   
             }
-            //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
+            if(playerStats.minutes > 0 ) {
+                pointsSum += playerStats.total_points;
+                realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                playCounter++;
+                continue;
+            }    
+        }
+        //add captain(or vicecaptain) points after the iteration of the first 11 players
+        if(didCaptainPlay) {
+            if(activeChip === '3xc') {
+                pointsSum += captainPoints * 2
+            } else {
+                pointsSum += captainPoints 
+            }
+        } else if(didViceCaptainPlay) {
+            if(activeChip === '3xc') {
+                pointsSum += viceCaptainPoints * 2
+            } else {
+                pointsSum += viceCaptainPoints
+            }
+        }
+        //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
+        if(activeChip !== 'bboost') {
+
             if(!didFirstGKPlayed) {
                 //12th element in picks array is the reserve goalkeeper
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[11].element - 1].stats;
@@ -148,7 +145,6 @@ async function Calculation(miniLeagueID) {
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                        positionsOnBench[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                     }
                 }
@@ -184,7 +180,6 @@ async function Calculation(miniLeagueID) {
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                        positionsOnBench[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                     }
                 }
@@ -215,7 +210,6 @@ async function Calculation(miniLeagueID) {
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                        positionsOnBench[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                     }
                 }
@@ -245,78 +239,13 @@ async function Calculation(miniLeagueID) {
                     realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                     playCounter++;
                     didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                    positionsOnBench[playerTeamActivity.element_type] -= 1;
                     continue;
                 }
                 
-            }
-        } else if(activeChip === 'bboost') {
-            for(let j = 0; j < 15; j++) {
-                let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
-                let playerTeamActivity = miniLeagueTeams[i].picks[j];
-                let hisGameStarted = true;
-                let hisGameEnded = false;
-                for(let g = 0; g < 10; g++) {
-                    if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
-                        let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
-                        //checking if his game started
-                        if (dateNow < kickoffDate) {
-                            hisGameStarted = false;
-                            break;
-                        }
-                        //checking if his game ended
-                        kickoffDate.setHours(kickoffDate.getHours() + 2);
-                        if(dateNow > kickoffDate) {
-                            hisGameEnded = true;
-                        }
-                    }
-                }
-                if(playerTeamActivity.is_captain) {
-                    if(playerStats.minutes > 0) {
-                        didCaptainPlay = true;
-                        captainPoints = playerStats.total_points;
-                    }
-                } else if(playerTeamActivity.is_vice_captain) {
-                    if(playerStats.minutes > 0) {
-                        didViceCaptainPlay = true;
-                        viceCaptainPoints = playerStats.total_points;
-                    }
-                }
-                //if his game did not start just skip him
-                if(!hisGameStarted) continue;
-                //if his game ended and player did not enter the game
-                if(hisGameEnded && playerStats.minutes <= 0) {
-                    if(playerTeamActivity.element_type === 'GKP') {
-                        didFirstGKPlayed = false;
-                        continue;
-                    }
-                    didNotPlayFieldPlayers[playerTeamActivity.element_type] += 1
-                    continue;   
-                }
-                if(playerStats.minutes > 0 ) {
-                    pointsSum += playerStats.total_points;
-                    realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                    playCounter++;
-                    continue;
-                }    
-            }
-            //add captain(or vicecaptain) points after the iteration of all players
-            if(didCaptainPlay) {
-                if(activeChip === '3xc') {
-                    pointsSum += captainPoints * 2
-                } else {
-                    pointsSum += captainPoints 
-                }
-            } else if(didViceCaptainPlay) {
-                if(activeChip === '3xc') {
-                    pointsSum += viceCaptainPoints * 2
-                } else {
-                    pointsSum += viceCaptainPoints
-                }
-            }
+            } 
         }
         //if the fpl api is not updated the first time in this gameweek, we need to manually deduct potential transfer minus points
-        //from the players overall score
+        //from the player's overall score
         //after the first update, those points are deducted from the overall score by the API
         
         if((dateForGameweekPickAndAPIUpdate < firstAPIUpdate) && miniLeagueTeams[i].event_transfers_cost) {
@@ -333,12 +262,12 @@ async function Calculation(miniLeagueID) {
         miniLeagueTeamsPoints['player_name'] = miniLeagueTeams[i].player_name; 
         miniLeagueTeamsPoints['entry_name'] = miniLeagueTeams[i].entry_name;
         // miniLeagueTeamsPoints['num_of_transfers'] = numOfTransfers;  
-        miniLeagueTeamsPointsArray.push(miniLeagueTeamsPoints)
+        miniLeagueTeamsDataArray.push(miniLeagueTeamsPoints)
     }
     
-    quickSort(miniLeagueTeamsPointsArray, 0, miniLeagueTeamsPointsArray.length - 1);
+    quickSort(miniLeagueTeamsDataArray, 0, miniLeagueTeamsDataArray.length - 1);
 
-    return miniLeagueTeamsPointsArray;
+    return {miniLeagueTeamsDataArray, miniLeagueName};
 
 }
 

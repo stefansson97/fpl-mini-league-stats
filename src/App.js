@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import './App.css';
 import Calculation from './calculation';
-
+import Table from './components/standings-table/standings-table.component';
+import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
 
 function App() {
 
   const [miniLeagueID, setMiniLeagueID] = useState('');
-  const [points, setPoints] = useState([]);
+  const [miniLeagueName, setMiniLeagueName] = useState('');
+  const [miniLeagueData, setMiniLeagueData] = useState([]);
 
   const handleInputChange = (e) => {
     setMiniLeagueID(e.target.value);
@@ -14,30 +16,22 @@ function App() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    let points = await Calculation(miniLeagueID)
-    setPoints(points);
+    let data = await Calculation(miniLeagueID)
+    setMiniLeagueName(data.miniLeagueName)
+    setMiniLeagueData(data.miniLeagueTeamsDataArray);
   }
 
   return (
     <div className="App">
-      Enter your Mini-League ID:
       <form onSubmit={handleFormSubmit}>
-        <input value={miniLeagueID} onChange={handleInputChange}/>
+        <MiniLeagueIDInput value={miniLeagueID} handleChange={handleInputChange}/>
       </form>
-      {points ? (
-        <div>
-          {points.map(team => {
-            return (
-              <div>
-                {team.player_name}
-                {team.points}
-              </div>
-            )
-          })}
-        </div>
-      ) : null}
+      <div className='mini-league-title'>{miniLeagueName}</div>
+      <Table data={miniLeagueData} />
     </div>
   );
 }
+
+
 
 export default App;
