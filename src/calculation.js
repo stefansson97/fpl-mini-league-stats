@@ -14,6 +14,8 @@ async function Calculation(miniLeagueID) {
             break;
         }
     }
+    let bonusArray = await getBonusPoints(gameweek);
+    let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10);
     let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
     let miniLeagueName = miniLeagueData.data.league.name;
     let next_page = 2;
@@ -58,7 +60,6 @@ async function Calculation(miniLeagueID) {
         let pointsSum = 0;
         let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
-        let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10);
         for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
             let playerTeamActivity = miniLeagueTeams[i].picks[j];
@@ -82,12 +83,14 @@ async function Calculation(miniLeagueID) {
             if(playerTeamActivity.is_captain) {
                 if(playerStats.minutes > 0) {
                     didCaptainPlay = true;
-                    captainPoints = playerStats.total_points;
+                    let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                    captainPoints = (playerStats.total_points + potentialBonus);
                 }
             } else if(playerTeamActivity.is_vice_captain) {
                 if(playerStats.minutes > 0) {
                     didViceCaptainPlay = true;
-                    viceCaptainPoints = playerStats.total_points;
+                    let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                    viceCaptainPoints = (playerStats.total_points + potentialBonus);
                 }
             }
             //if his game did not start just skip him
@@ -101,36 +104,28 @@ async function Calculation(miniLeagueID) {
                 didNotPlayFieldPlayers[playerTeamActivity.element_type] += 1
                 continue;   
             }
+            //adding player points to the total score
             if(playerStats.minutes > 0 ) {
-                pointsSum += playerStats.total_points;
+                let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                pointsSum += (playerStats.total_points + potentialBonus);
                 realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                 playCounter++;
                 continue;
             }    
         }
         //add captain(or vicecaptain) points after the iteration of the first 11 players
-        if(didCaptainPlay) {
-            if(activeChip === '3xc') {
-                pointsSum += captainPoints * 2
-            } else {
-                pointsSum += captainPoints 
-            }
-        } else if(didViceCaptainPlay) {
-            if(activeChip === '3xc') {
-                pointsSum += viceCaptainPoints * 2
-            } else {
-                pointsSum += viceCaptainPoints
-            }
-        }
+        pointsSum += addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints);
+        
         //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
-        if(activeChip !== 'bboost') {
+        if(activeChip !== 'bboost' && playCounter !== 11) {
 
             if(!didFirstGKPlayed) {
                 //12th element in picks array is the reserve goalkeeper
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[11].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[11];
                 //console.log('tutu')
-                pointsSum += playerStats.total_points;
+                let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                pointsSum += (playerStats.total_points + potentialBonus);
                 realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                 playCounter++;
             }
@@ -141,7 +136,8 @@ async function Calculation(miniLeagueID) {
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerTeamActivity.element_type === 'DEF') {
                     if(playerStats.minutes > 0) {
-                        pointsSum += playerStats.total_points;
+                        let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                        pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
@@ -175,8 +171,9 @@ async function Calculation(miniLeagueID) {
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerTeamActivity.element_type === 'MID') {
-                    if(playerStats.minutes > 0) {  
-                        pointsSum += playerStats.total_points;
+                    if(playerStats.minutes > 0) {
+                        let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                        pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
@@ -206,7 +203,8 @@ async function Calculation(miniLeagueID) {
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerTeamActivity.element_type === 'FWD') {
                     if(playerStats.minutes > 0) {    
-                        pointsSum += playerStats.total_points;
+                        let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                        pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
@@ -235,7 +233,8 @@ async function Calculation(miniLeagueID) {
                     minimumPlayingPositions = true;
                 }
                 if(minimumPlayingPositions) {
-                    pointsSum += playerStats.total_points;
+                    let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                    pointsSum += (playerStats.total_points + potentialBonus);
                     realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                     playCounter++;
                     didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
@@ -322,6 +321,19 @@ function teamAnalyze(picks) {
     return playerPositions;
 }
 
+function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints) {
+    if(didCaptainPlay) {
+        if(activeChip === '3xc') return captainPoints * 2;
+        return captainPoints;
+    }
+    if(didViceCaptainPlay) {
+        if(activeChip === '3xc') return viceCaptainPoints * 2;
+        return viceCaptainPoints
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //thanks to https://www.guru99.com/quicksort-in-javascript.html
 //for providing the quick sort algorithm formula
 //which I modified to sort by points property and from max value to min value
@@ -365,6 +377,85 @@ function quickSort(items, left, right) {
     }
     return items;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function getBonusPoints(gameweek) {
+    let allFixtures = await axios.get('https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/fixtures/');
+    let thisGameweekFixtures = allFixtures.data.slice(gameweek * 10 - 10, gameweek * 10);
+    let dayNow = new Date().getDate();
+    //only consider fixtures that are played today
+
+    let todayFixtures = thisGameweekFixtures.filter(fixture => {
+        let fixtureDayDate = new Date(fixture.kickoff_time).getDate();
+        return fixtureDayDate === dayNow
+    })
+
+    if(todayFixtures.length === 0) return;
+
+    let bonusPoints = [];
+
+    todayFixtures.forEach(fixture => {
+        let awayPlayersBps = fixture.stats[9].a;
+        let homePlayersBps = fixture.stats[9].h;
+
+        let bonus = 3;
+
+        while(bonus > 0) {
+            if(awayPlayersBps[0].value < homePlayersBps[0].value) {
+                if(homePlayersBps[0].value === homePlayersBps[1].value) {
+                    homePlayersBps[0]['bonus'] = bonus;
+                    homePlayersBps[1]['bonus'] = bonus;
+                    bonus -= 2;
+                    bonusPoints.push(homePlayersBps[0], homePlayersBps[1])
+                    homePlayersBps.shift()
+                    homePlayersBps.shift()
+                } else {
+                    homePlayersBps[0]['bonus'] = bonus;
+                    bonus--;
+                    bonusPoints.push(homePlayersBps[0])
+                    homePlayersBps.shift();
+                }
+            } else if(awayPlayersBps[0].value === homePlayersBps[0].value) {
+                homePlayersBps[0]['bonus'] = bonus;
+                awayPlayersBps[0]['bonus'] = bonus;
+                bonus -= 2;
+                bonusPoints.push(homePlayersBps[0], awayPlayersBps[0]);
+                awayPlayersBps.shift();
+                homePlayersBps.shift();
+            } else {
+                if(awayPlayersBps[0].value === awayPlayersBps[1].value) {
+                    awayPlayersBps[0]['bonus'] = bonus;
+                    awayPlayersBps[1]['bonus'] = bonus;
+                    bonus -= 2;
+                    bonusPoints.push(awayPlayersBps[0], awayPlayersBps[1])
+                    awayPlayersBps.shift()
+                    awayPlayersBps.shift()
+                } else {
+                    awayPlayersBps[0]['bonus'] = bonus;
+                    bonus--;
+                    bonusPoints.push(awayPlayersBps[0])
+                    awayPlayersBps.shift();
+                }
+            }
+        }
+    });
+    return bonusPoints;
+}
+
+function checkIfHeGotBonus(bonusArray = [], playerID) {
+    let bonus = 0;
+    if(bonusArray.length === 0) return bonus;
+    for(let i = 0; i < bonusArray.length; i++) {
+        if(bonusArray[i].element === playerID) {
+            bonus = bonusArray[i].bonus;
+        }
+    }
+    return bonus;
+}
+
+
+
 
 
 export default Calculation;
