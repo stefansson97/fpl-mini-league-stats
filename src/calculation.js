@@ -3,39 +3,22 @@ import { players } from './players';
 import { fixtures, gameweekDates } from './fixtures';
 
 async function Calculation(miniLeagueID) {
-    let dateForGameweekPickAndAPIUpdate = new Date();
-    let gameweek = 0;
-    let firstAPIUpdate = new Date();
-    for(let i = gameweekDates.length - 1; i >= 0; i--) {
-        let gameweekDate = new Date(gameweekDates[i].deadlineDate)
-        if(dateForGameweekPickAndAPIUpdate > gameweekDate) {
-            gameweek = gameweekDates[i].gameweekNo;
-            firstAPIUpdate = new Date(gameweekDates[i].firstGameweekAPIUpdate)
-            break;
-        }
-    }
+    
+    let gameweekData = getGameweekNumberAndFirstAPIUpdate();
+    let gameweek = gameweekData.gameweek;
+    let firstAPIUpdate = gameweekData.firstAPIUpdate
+    let gameweekFixtures = gameweekData.gameweekFixtures;
+
     let bonusArray = await getBonusPoints(gameweek);
-    let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10);
-    let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
-    let miniLeagueName = miniLeagueData.data.league.name;
-    let next_page = 2;
-    let has_next = miniLeagueData.data.standings.has_next;
-    while(has_next) {
-        let newTeams = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/?page_standings=${next_page}`)
-        has_next = newTeams.data.standings.has_next;
-        miniLeagueData.data.standings.results.push(...newTeams.data.standings.results);
-        next_page++;
-    }
-    let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
-    let miniLeagueTeams = []; 
-    miniLeaguePlayersData.forEach(async teamID => {
-        const url = `https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/entry/${teamID.entry}/event/${gameweek}/picks/`
-        let response = await axios.get(url);
-        let picks = getPlayersType(response.data.picks);
-        miniLeagueTeams.push({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
-    });
+
+    let miniLeagueData = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
+    let miniLeagueName = miniLeagueData.miniLeagueName;
+    let miniLeagueTeams = miniLeagueData.miniLeagueTeams;
+
     let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
+    
     let miniLeagueTeamsDataArray = [];
+
     for(let i = 0; i < miniLeagueTeams.length; i++) {
         let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
         let realTeamPlayingPositions = {
@@ -61,25 +44,14 @@ async function Calculation(miniLeagueID) {
         let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
         for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
+
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
             let playerTeamActivity = miniLeagueTeams[i].picks[j];
-            let hisGameStarted = true;
-            let hisGameEnded = false;
-            for(let g = 0; g < 10; g++) {
-                if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
-                    let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
-                    //checking if his game started
-                    if (dateNow < kickoffDate) {
-                        hisGameStarted = false;
-                        break;
-                    }
-                    //checking if his game ended
-                    kickoffDate.setHours(kickoffDate.getHours() + 2);
-                    if(dateNow > kickoffDate) {
-                        hisGameEnded = true;
-                    }
-                }
-            }
+            
+            let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
+            let hisGameStarted = gameData.hisGameStarted;
+            let hisGameEnded = gameData.hisGameEnded;
+            
             if(playerTeamActivity.is_captain) {
                 if(playerStats.minutes > 0) {
                     didCaptainPlay = true;
@@ -147,17 +119,14 @@ async function Calculation(miniLeagueID) {
                 //if there are no 3 playing players from defence we must take one/two/three with 0 minutes
                 if(j === 14) {
                     if(realTeamPlayingPositions.DEF === 0) {
-                        pointsSum += 0;
                         realTeamPlayingPositions['DEF'] += 3;
                         playCounter += 3;
                         didNotPlayFieldPlayers['DEF'] -= 3;
                     } else if(realTeamPlayingPositions.DEF === 1) {
-                        pointsSum += 0;
                         realTeamPlayingPositions['DEF'] += 2;
                         playCounter += 2;
                         didNotPlayFieldPlayers['DEF'] -= 2;
                     } else if(realTeamPlayingPositions.DEF === 2) {
-                        pointsSum += 0;
                         realTeamPlayingPositions['DEF'] += 1;
                         playCounter += 1;
                         didNotPlayFieldPlayers['DEF'] -= 1;
@@ -183,12 +152,10 @@ async function Calculation(miniLeagueID) {
                 //if there are no 2 playing players from midfield we must take one/two with 0 minutes
                 if(j === 14) {
                     if(realTeamPlayingPositions.MID === 0) {
-                        pointsSum += 0;
                         realTeamPlayingPositions['MID'] += 2;
                         playCounter += 2;
                         didNotPlayFieldPlayers['MID'] -= 2;
-                    } else if(realTeamPlayingPositions.MID === 1) {    
-                        pointsSum += 0;
+                    } else if(realTeamPlayingPositions.MID === 1) {
                         realTeamPlayingPositions['MID'] += 1;
                         playCounter += 1;
                         didNotPlayFieldPlayers['MID'] -= 1;
@@ -213,8 +180,7 @@ async function Calculation(miniLeagueID) {
                 }
                 //if there is no 1 playing attacker we must take one with 0 minutes
                 if(j === 14) {
-                    if(realTeamPlayingPositions.MID === 0) {    
-                        pointsSum += 0;
+                    if(realTeamPlayingPositions.MID === 0) {
                         realTeamPlayingPositions['FWD'] += 1;
                         playCounter += 1;
                         didNotPlayFieldPlayers['FWD'] -= 1;
@@ -246,7 +212,7 @@ async function Calculation(miniLeagueID) {
         //if the fpl api is not updated the first time in this gameweek, we need to manually deduct potential transfer minus points
         //from the player's overall score
         //after the first update, those points are deducted from the overall score by the API
-        
+        let dateForGameweekPickAndAPIUpdate = new Date();
         if((dateForGameweekPickAndAPIUpdate < firstAPIUpdate) && miniLeagueTeams[i].event_transfers_cost) {
             pointsSum -= miniLeagueTeams[i].event_transfers_cost
         }
@@ -321,6 +287,22 @@ function teamAnalyze(picks) {
     return playerPositions;
 }
 
+function getGameweekNumberAndFirstAPIUpdate() {
+    let gameweek = 0;
+    let firstAPIUpdate = new Date();
+    let dateForGameweekPickAndAPIUpdate = new Date();
+    for(let i = gameweekDates.length - 1; i >= 0; i--) {
+        let gameweekDate = new Date(gameweekDates[i].deadlineDate)
+        if(dateForGameweekPickAndAPIUpdate > gameweekDate) {
+            gameweek = gameweekDates[i].gameweekNo;
+            firstAPIUpdate = new Date(gameweekDates[i].firstGameweekAPIUpdate)
+            break;
+        }
+    }
+    let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10); 
+    return {gameweek, firstAPIUpdate, gameweekFixtures}
+}
+
 function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints) {
     if(didCaptainPlay) {
         if(activeChip === '3xc') return captainPoints * 2;
@@ -332,53 +314,54 @@ function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activ
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
+    let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+    let miniLeagueName = miniLeagueData.data.league.name;
+    
+    //if there are more than 50 teams
+    let next_page = 2;
+    let has_next = miniLeagueData.data.standings.has_next;
+    while(has_next) {
+        let newTeams = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/?page_standings=${next_page}`)
+        has_next = newTeams.data.standings.has_next;
+        miniLeagueData.data.standings.results.push(...newTeams.data.standings.results);
+        next_page++;
+    }
 
-//thanks to https://www.guru99.com/quicksort-in-javascript.html
-//for providing the quick sort algorithm formula
-//which I modified to sort by points property and from max value to min value
+    let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
+    let miniLeagueTeams = []; 
+    miniLeaguePlayersData.forEach(async teamID => {
+        const url = `https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/entry/${teamID.entry}/event/${gameweek}/picks/`
+        let response = await axios.get(url);
+        let picks = getPlayersType(response.data.picks);
+        miniLeagueTeams.push({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
+    });
 
-function swap(items, leftIndex, rightIndex){
-    var temp = items[leftIndex];
-    items[leftIndex] = items[rightIndex];
-    items[rightIndex] = temp;
+    return {miniLeagueTeams, miniLeagueName};
 }
 
-function partition(items, left, right) {
-    var pivot   = items[Math.floor((right + left) / 2)], //middle element
-        i       = left, //left pointer
-        j       = right; //right pointer
-    while (i <= j) {
-        while (items[i].points > pivot.points) {
-            i++;
-        }
-        while (items[j].points < pivot.points) {
-            j--;
-        }
-        if (i <= j) {
-            swap(items, i, j); //swapping two elements
-            i++;
-            j--;
+function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {
+    let hisGameStarted = true;
+    let hisGameEnded = false;
+    for(let g = 0; g < 10; g++) {
+        if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
+            let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
+            //checking if his game started
+            if (dateNow < kickoffDate) {
+                hisGameStarted = false;
+                break;
+            }
+            //checking if his game ended
+            kickoffDate.setHours(kickoffDate.getHours() + 2);
+            if(dateNow > kickoffDate) {
+                hisGameEnded = true;
+                break;
+            }
+            break;
         }
     }
-    return i;
+    return {hisGameStarted, hisGameEnded};
 }
-
-function quickSort(items, left, right) {
-    var index;
-    if (items.length > 1) {
-        index = partition(items, left, right); //index returned from partition
-        if (left < index - 1) { //more elements on the left side of the pivot
-            quickSort(items, left, index - 1);
-        }
-        if (index < right) { //more elements on the right side of the pivot
-            quickSort(items, index, right);
-        }
-    }
-    return items;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function getBonusPoints(gameweek) {
     let allFixtures = await axios.get('https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/fixtures/');
@@ -454,8 +437,52 @@ function checkIfHeGotBonus(bonusArray = [], playerID) {
     return bonus;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//thanks to https://www.guru99.com/quicksort-in-javascript.html
+//for providing the quick sort algorithm formula
+//which I modified to sort by points property and from max value to min value
 
+function swap(items, leftIndex, rightIndex){
+    var temp = items[leftIndex];
+    items[leftIndex] = items[rightIndex];
+    items[rightIndex] = temp;
+}
 
+function partition(items, left, right) {
+    var pivot   = items[Math.floor((right + left) / 2)], //middle element
+        i       = left, //left pointer
+        j       = right; //right pointer
+    while (i <= j) {
+        while (items[i].points > pivot.points) {
+            i++;
+        }
+        while (items[j].points < pivot.points) {
+            j--;
+        }
+        if (i <= j) {
+            swap(items, i, j); //swapping two elements
+            i++;
+            j--;
+        }
+    }
+    return i;
+}
+
+function quickSort(items, left, right) {
+    var index;
+    if (items.length > 1) {
+        index = partition(items, left, right); //index returned from partition
+        if (left < index - 1) { //more elements on the left side of the pivot
+            quickSort(items, left, index - 1);
+        }
+        if (index < right) { //more elements on the right side of the pivot
+            quickSort(items, index, right);
+        }
+    }
+    return items;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export default Calculation;
