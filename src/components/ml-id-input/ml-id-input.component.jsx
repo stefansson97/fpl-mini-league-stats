@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 const Styles = styled.div`
@@ -58,11 +58,17 @@ const Label = styled.label`
 
 `
 
-function MiniLeagueIDInput({ value, handleChange }) {
+function MiniLeagueIDInput({ value, handleChange, ref }) {
+
+    const inputRef = useRef();
+
+    useEffect(() => {
+        inputRef.current.focus();
+    })
 
     return (
         <Styles>
-            <Input id='mini-league-id' value={value} onChange={handleChange} autoComplete='off' required/>
+            <Input ref={inputRef} id='mini-league-id' value={value} onChange={handleChange} autoComplete='off' required/>
             <Label htmlFor='mini-league-id'>Mini-league ID</Label>
         </Styles>
     )
