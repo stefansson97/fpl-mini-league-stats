@@ -7,7 +7,7 @@ const Styles = styled.div`
   color: #61892F;
   table {
     border-spacing: 0;
-    border: 1px solid black;
+    border: none;
 
     tr {
       :last-child {
@@ -21,14 +21,33 @@ const Styles = styled.div`
     td {
       margin: 0;
       padding: 0.5rem;
-      border-bottom: 1px solid black;
-      border-right: 1px solid black;
+      border-bottom: 1px solid #61892F;
+      border-right: 1px solid #61892F;
 
       :last-child {
         border-right: 0;
       }
     }
   }
+
+  animation-name: table-animation;
+  animation-duration: 1s;
+
+  @keyframes table-animation {
+      from {opacity: 0.1;}
+      to {opacity: 1}
+  }
+
+  .page-nav-btn {
+    border: none;
+    background: none;
+    color: #86C232;
+  }
+
+  .disabled {
+    color: #61892F;
+  }
+
 `
 
 function Table({ data }) {
@@ -77,7 +96,7 @@ function Table({ data }) {
   
     // Render the UI for your table
     return (
-        <Styles>
+    <Styles>
       <>
         <table {...getTableProps()}>
           <thead>
@@ -103,17 +122,19 @@ function Table({ data }) {
           </tbody>
         </table>
             <div className="pagination">
-            <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+            <button 
+              onClick={() => gotoPage(0)} 
+              disabled={!canPreviousPage}
+              className={'page-nav-btn' + (!canPreviousPage ? ' disabled' : '')}
+            >
               {'<<'}
             </button>{' '}
-            <button onClick={() => previousPage()} disabled={!canPreviousPage}>
+            <button 
+              onClick={() => previousPage()} 
+              disabled={!canPreviousPage} 
+              className={'page-nav-btn' + (!canPreviousPage ? ' disabled' : '')}
+            >
               {'<'}
-            </button>{' '}
-            <button onClick={() => nextPage()} disabled={!canNextPage}>
-              {'>'}
-            </button>{' '}
-            <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-              {'>>'}
             </button>{' '}
             <span>
               Page{' '}
@@ -121,6 +142,20 @@ function Table({ data }) {
                 {pageIndex + 1} of {pageOptions.length}
               </strong>{' '}
             </span>
+            <button 
+              onClick={() => nextPage()} 
+              disabled={!canNextPage} 
+              className={'page-nav-btn' + (!canNextPage ? ' disabled' : '')}
+            >
+              {'>'}
+            </button>{' '}
+            <button 
+              onClick={() => gotoPage(pageCount - 1)} 
+              disabled={!canNextPage} 
+              className={'page-nav-btn' + (!canNextPage ? ' disabled' : '')}
+              >
+              {'>>'}
+            </button>{' '}
           </div>
           </>
         </Styles>

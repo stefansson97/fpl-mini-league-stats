@@ -11,10 +11,8 @@ async function Calculation(miniLeagueID) {
 
     let bonusArray = await getBonusPoints(gameweek);
 
-    let miniLeagueData = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
-    let miniLeagueName = miniLeagueData.miniLeagueName;
-    let miniLeagueTeams = miniLeagueData.miniLeagueTeams;
-
+    let miniLeagueTeams = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
+    
     let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
     
     let miniLeagueTeamsDataArray = [];
@@ -232,7 +230,7 @@ async function Calculation(miniLeagueID) {
     
     quickSort(miniLeagueTeamsDataArray, 0, miniLeagueTeamsDataArray.length - 1);
 
-    return {miniLeagueTeamsDataArray, miniLeagueName};
+    return miniLeagueTeamsDataArray;
 
 }
 
@@ -314,9 +312,14 @@ function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activ
     }
 }
 
+export async function getMiniLeagueName(miniLeagueID) {
+    let response = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+    
+    return response.data.league.name;
+}
+
 async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
     let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
-    let miniLeagueName = miniLeagueData.data.league.name;
     
     //if there are more than 50 teams
     let next_page = 2;
@@ -337,7 +340,7 @@ async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
         miniLeagueTeams.push({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
     });
 
-    return {miniLeagueTeams, miniLeagueName};
+    return miniLeagueTeams;
 }
 
 function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {

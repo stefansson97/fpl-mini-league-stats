@@ -9,6 +9,13 @@ const Styles = styled.div`
     background-color: transparent;
     position: relative;
     border-radius: 3px;
+    animation-name: input-animation;
+    animation-duration: 1s;
+
+    @keyframes input-animation {
+        from {opacity: 0.1;}
+        to {opacity: 1}
+    }
 `
 
 const Input = styled.input`
