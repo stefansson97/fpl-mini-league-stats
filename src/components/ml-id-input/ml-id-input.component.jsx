@@ -58,7 +58,7 @@ const Label = styled.label`
 
 `
 
-function MiniLeagueIDInput({ value, handleChange, ref }) {
+function MiniLeagueIDInput({ value, handleChange }) {
 
     const inputRef = useRef();
 

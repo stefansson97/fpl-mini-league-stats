@@ -4,6 +4,7 @@ import Calculation, { getMiniLeagueName } from './calculation';
 import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
 import Loading from './components/loading/loading.component';
 import CustomTable from './components/standings-table/custom-table.component';
+import ThemeSwitch from './components/theme-switch/theme-switch.component';
 
 const Styles = styled.div`
   display: flex;
@@ -57,6 +58,11 @@ const Styles = styled.div`
     opacity: 0.3;
     pointer-events: none;
   }
+
+  a {
+    text-decoration: none;
+    margin-top: 10px;
+  }
   
 `
 
@@ -74,11 +80,6 @@ function App() {
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    setIsLoadingName(false);
-  }, [miniLeagueName])
-
-  useEffect(() => {
-    setIsLoadingData(false);
     setTotalPages(Math.ceil(miniLeagueData.length / 10));
   }, [miniLeagueData])
 
@@ -96,8 +97,10 @@ function App() {
     setIsLoadingData(true);
     let name = await getMiniLeagueName(miniLeagueID);
     setMiniLeagueName(name);
+    setIsLoadingName(false);
     let data = await Calculation(miniLeagueID)
     setMiniLeagueData(data);
+    setIsLoadingData(false);
   }
 
   const handleButtonClickNext = () => {
@@ -108,12 +111,13 @@ function App() {
     setPageNumber(prevValue => prevValue - 1);
   }
 
-
   return (
     <Styles>
       <form onSubmit={handleFormSubmit}>
         <MiniLeagueIDInput  value={miniLeagueID} handleChange={handleInputChange}/>
       </form>
+      <ThemeSwitch />
+      <a href='https://i.imgur.com/6TS3j2d.png' target='_blank' rel='noopener noreferrer'>What's the mini-league ID?</a>
       {miniLeagueName ? <div className='mini-league-title'>{miniLeagueName}</div> : null}
       {isLoadingName || isLoadingData ? <Loading /> : (
         standingsData ? (
@@ -126,7 +130,6 @@ function App() {
         </>
         ) : null
       )}
-
     </Styles>
   );
 }

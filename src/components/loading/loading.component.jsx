@@ -8,6 +8,7 @@ const Styles = styled.div`
     width: 30px;
     height: 30px;
     animation: spin 1s linear infinite;
+    margin-top: 30px;
 
     @keyframes spin {
         0% { transform: rotate(0deg); }

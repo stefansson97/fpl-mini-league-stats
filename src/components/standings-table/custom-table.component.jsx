@@ -3,18 +3,18 @@ import styled from 'styled-components';
 
 const Styles = styled.div`
 
-    width: 60%;
-
-    
+    width: 90%;
 
     table {
         width: 100%;
+        border-collapse: collapse;
     }
     
     th {
         font-weight: 500;
         line-height:1em;
-        color: #61892F
+        background-color: #FFFFFF;
+        border: 1px solid #ddd;
     }
 
     tr {
@@ -23,16 +23,16 @@ const Styles = styled.div`
 
     td {
         color: #222629;
-
+        border: 1px solid #ddd;
     }
 
 
-    .dark-grey {
-        background-color: #474B4F;
+    .dark {
+        background-color: #FFFFFF;
     }
 
-    .light-grey {
-        background-color: #6B6E70;
+    .light {
+        background-color: #F2F2F2;
     }
 
     animation-name: table-animation;
@@ -54,17 +54,23 @@ function CustomTable({data, pageNumber}) {
                         <th>Rank</th>
                         <th>Player Name</th>
                         <th>Team Name</th>
-                        <th>Points</th>
+                        <th>Captain</th>
+                        <th>Vice Captain</th>
+                        <th>Gameweek</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data.map((team, idx) => {
                         return (
-                            <tr className={idx % 2 === 0 ? 'dark-grey' : 'light-grey'}>
+                            <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
                                 <td>{((pageNumber - 1) * 10) + idx + 1}</td>
                                 <td>{team.player_name}</td>
                                 <td>{team.entry_name}</td>
-                                <td>{team.points}</td>
+                                <td>{team.captain}</td>
+                                <td>{team.vice_captain}</td>
+                                <td>{team.event_total}</td>
+                                <td>{team.total}</td>
                             </tr>
                         )
                     })}

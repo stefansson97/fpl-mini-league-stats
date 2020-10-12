@@ -11,7 +11,13 @@ async function Calculation(miniLeagueID) {
 
     let bonusArray = await getBonusPoints(gameweek);
 
-    let miniLeagueTeams = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
+    let miniLeagueTeams = [];
+    try {
+        miniLeagueTeams = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
+    } catch(e) {
+        alert(e);
+        return [];
+    }
     
     let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
     
@@ -35,12 +41,16 @@ async function Calculation(miniLeagueID) {
         let minimumPlayingPositions = false;
         let didFirstGKPlayed = true;
         let captainPoints = 0;
+        let captainName = '';
+        let viceCaptainName = '';
         let viceCaptainPoints = 0;
+        let captainDidNotEnter = false;
         let didCaptainPlay = false;
         let didViceCaptainPlay = false;
         let pointsSum = 0;
         let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
+        console.log('jedan igrac')
         for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
 
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
@@ -51,12 +61,17 @@ async function Calculation(miniLeagueID) {
             let hisGameEnded = gameData.hisGameEnded;
             
             if(playerTeamActivity.is_captain) {
+                captainName = players[playerTeamActivity.element - 1].web_name;
+                if(hisGameEnded && playerStats.minutes <= 0) {
+                    captainDidNotEnter = true;
+                }
                 if(playerStats.minutes > 0) {
                     didCaptainPlay = true;
                     let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                     captainPoints = (playerStats.total_points + potentialBonus);
                 }
             } else if(playerTeamActivity.is_vice_captain) {
+                viceCaptainName = players[playerTeamActivity.element - 1].web_name;
                 if(playerStats.minutes > 0) {
                     didViceCaptainPlay = true;
                     let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
@@ -84,8 +99,10 @@ async function Calculation(miniLeagueID) {
             }    
         }
         //add captain(or vicecaptain) points after the iteration of the first 11 players
-        pointsSum += addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints);
-        
+        pointsSum += addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints, captainDidNotEnter);
+        if(captainDidNotEnter) {
+            captainName = viceCaptainName;
+        }
         //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
         if(activeChip !== 'bboost' && playCounter !== 11) {
 
@@ -93,7 +110,6 @@ async function Calculation(miniLeagueID) {
                 //12th element in picks array is the reserve goalkeeper
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[11].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[11];
-                //console.log('tutu')
                 let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                 pointsSum += (playerStats.total_points + potentialBonus);
                 realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
@@ -219,15 +235,18 @@ async function Calculation(miniLeagueID) {
         // let numOfTransfers = await getNumberOfTransfers(miniLeagueTeams[i].entry);
         //it drasticly slows down the algorithm
 
-        miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry;
-        //miniLeagueTeamsPoints['points'] = pointsSum
-        miniLeagueTeamsPoints['points'] = pointsSum + miniLeagueTeams[i].total_points - miniLeagueTeams[i].event_total;
+        miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry;        
+        miniLeagueTeamsPoints['total'] = pointsSum + miniLeagueTeams[i].total_points - miniLeagueTeams[i].event_total;
+        miniLeagueTeamsPoints['event_total'] = pointsSum;
         miniLeagueTeamsPoints['player_name'] = miniLeagueTeams[i].player_name; 
         miniLeagueTeamsPoints['entry_name'] = miniLeagueTeams[i].entry_name;
+        miniLeagueTeamsPoints['captain'] = captainName;
+        miniLeagueTeamsPoints['vice_captain'] = viceCaptainName;
+        
         // miniLeagueTeamsPoints['num_of_transfers'] = numOfTransfers;  
         miniLeagueTeamsDataArray.push(miniLeagueTeamsPoints)
     }
-    
+    console.log('kraj')
     quickSort(miniLeagueTeamsDataArray, 0, miniLeagueTeamsDataArray.length - 1);
 
     return miniLeagueTeamsDataArray;
@@ -301,15 +320,16 @@ function getGameweekNumberAndFirstAPIUpdate() {
     return {gameweek, firstAPIUpdate, gameweekFixtures}
 }
 
-function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints) {
+function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints, captainDidNotEnter) {
     if(didCaptainPlay) {
         if(activeChip === '3xc') return captainPoints * 2;
         return captainPoints;
     }
-    if(didViceCaptainPlay) {
+    if(didViceCaptainPlay && captainDidNotEnter) {
         if(activeChip === '3xc') return viceCaptainPoints * 2;
         return viceCaptainPoints
     }
+    return 0;
 }
 
 export async function getMiniLeagueName(miniLeagueID) {
@@ -324,11 +344,19 @@ async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
     //if there are more than 50 teams
     let next_page = 2;
     let has_next = miniLeagueData.data.standings.has_next;
-    while(has_next) {
+    while(has_next && next_page < 11) {
         let newTeams = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/?page_standings=${next_page}`)
         has_next = newTeams.data.standings.has_next;
         miniLeagueData.data.standings.results.push(...newTeams.data.standings.results);
         next_page++;
+    }
+
+    //we are limiting our calculation to 500 teams at max 
+    //if mini-league has got more than 500 teams throw an error
+    if(next_page >= 11) {
+        let error = new Error()
+        error.message = 'There is more than 500 participants in your league! Please only enter leagues with lower number of participants.'
+        throw error;
     }
 
     let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
@@ -457,10 +485,10 @@ function partition(items, left, right) {
         i       = left, //left pointer
         j       = right; //right pointer
     while (i <= j) {
-        while (items[i].points > pivot.points) {
+        while (items[i].total > pivot.total) {
             i++;
         }
-        while (items[j].points < pivot.points) {
+        while (items[j].total < pivot.total) {
             j--;
         }
         if (i <= j) {

@@ -17,12 +17,14 @@ export const gameweekDates = [
     {
       gameweekNo: 4,
       deadlineDate: "2020-10-03T10:00:00Z",
-      firstGameweekAPIUpdate: "2020-10-03T23:00:00Z"
+      firstGameweekAPIUpdate: "2020-10-03T23:00:00Z",
+      lastGameweekAPIUpdate: "2020-10-04T23:00:00Z"
     },
     {
       gameweekNo: 5,
       deadlineDate: "2020-10-17T10:00:00Z",
-      firstGameweekAPIUpdate: ""
+      firstGameweekAPIUpdate: "2020-10-17T23:00:00Z",
+      lastGameweekAPIUpdate: "2020-10-19T23:00:00Z"
     },
     {
       gameweekNo: 6,
