@@ -1,83 +1,26 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import styled from 'styled-components';
-
-//switch from https://www.w3schools.com/howto/howto_css_switch.asp
-//with some modification
+import { ThemeContext } from '../../ThemeProvider';
 
 const Styles = styled.div`
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 60px;
-        height: 34px;
-    }
-
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: white;
-        border: 1px solid black;
-        -webkit-transition: .4s;
-        transition: .4s;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 26px;
-        width: 26px;
-        left: 4px;
-        bottom: 4px;
-        background-color: black;
-        -webkit-transition: .4s;
-        transition: .4s;
-    }
-      
-      input:checked + .slider {
-        background-color: black;
-    }
-      
-      input:focus + .slider {
-        box-shadow: 0 0 1px #2196F3;
-    }
-      
-      input:checked + .slider:before {
-        -webkit-transform: translateX(26px);
-        -ms-transform: translateX(26px);
-        transform: translateX(26px);
-        background-color: white;
-    }
-      
-      /* Rounded sliders */
-      .slider.round {
-        border-radius: 34px;
-    }
-      
-      .slider.round:before {
-        border-radius: 50%;
-    }
-
+    position: absolute;
+    top: 30px;
+    right: 50px;
+    color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
 `
-
 
 function ThemeSwitch() {
 
+    const {darkTheme, changeTheme} = useContext(ThemeContext)
+    
+    Styles.defaultProps = {
+        theme: {
+          darkTheme: darkTheme  }
+    }
+
     return (
-        <Styles>
-            <label className='switch'>
-                <input type='checkbox'></input>
-                <span className='slider round'></span>
-            </label>
+        <Styles onClick={changeTheme}>
+             {darkTheme ? (<i className="far fa-lightbulb fa-3x"></i>) :  (<i className="fas fa-lightbulb fa-3x"></i>)}
         </Styles>
     )
 }

@@ -1,19 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
+import { ThemeContext } from './ThemeProvider';
 import Calculation, { getMiniLeagueName } from './calculation';
 import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
+import SubmitButton from './components/submit-button/submit-button.component';
 import Loading from './components/loading/loading.component';
 import CustomTable from './components/standings-table/custom-table.component';
 import ThemeSwitch from './components/theme-switch/theme-switch.component';
 
+
 const Styles = styled.div`
   display: flex;
+  height: 100%;
   flex-flow: column;
   text-align: center;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding: 50px;
   position: relative;
+  background-color: ${(props) => props.theme.darkTheme ? '#0e182a' : 'white'};
 
   @keyframes title-animation {
     from {opacity: 0.1;}
@@ -24,12 +29,16 @@ const Styles = styled.div`
     outline: none;
   }
 
+  form {
+    width: 250px;
+  }
+
   .mini-league-title {
     padding-top: 30px;
     padding-bottom: 30px;
     font-size: 2.5rem;
     font-weight: 500;
-    color: #61892F;
+    color: ${(props) => props.theme.darkTheme ? 'white' : '#0e182a'};
     animation-name: title-animation;
     animation-duration: 1s;
   }
@@ -37,18 +46,18 @@ const Styles = styled.div`
   .buttons-div {
     display: flex;
     justify-content: space-between;
-    width: 60%;
+    width: 90%;
   }
 
   .page-btn {
     border: none;
     border-radius: 5px;
-    background-color: #61892F;
-    color: #222629;
+    background-color: ${(props) => props.theme.darkTheme ? 'white' : '#0e182a'};
+    color: ${(props) => props.theme.darkTheme ? '#0e182a' : 'white'};
     cursor: pointer;
     outline: none;
-    width: 25%;
-    height: 40px;
+    width: 20%;
+    height: 50px;
     margin-top: 5px;
     font-size: 1.2rem;
     transition: all 0.5s ease;
@@ -60,7 +69,6 @@ const Styles = styled.div`
   }
 
   a {
-    text-decoration: none;
     margin-top: 10px;
   }
   
@@ -78,6 +86,13 @@ function App() {
   const [pageNumber, setPageNumber] = useState(1);
   const [standingsData, setStandingsData] = useState('');
   const [totalPages, setTotalPages] = useState(0);
+
+  const { darkTheme } = useContext(ThemeContext);
+  console.log(darkTheme)
+  Styles.defaultProps = {
+    theme: {
+      darkTheme: darkTheme  }
+  }
 
   useEffect(() => {
     setTotalPages(Math.ceil(miniLeagueData.length / 10));
@@ -115,6 +130,7 @@ function App() {
     <Styles>
       <form onSubmit={handleFormSubmit}>
         <MiniLeagueIDInput  value={miniLeagueID} handleChange={handleInputChange}/>
+        <SubmitButton>Submit</SubmitButton>
       </form>
       <ThemeSwitch />
       <a href='https://i.imgur.com/6TS3j2d.png' target='_blank' rel='noopener noreferrer'>What's the mini-league ID?</a>

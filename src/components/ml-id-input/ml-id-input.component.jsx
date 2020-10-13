@@ -1,61 +1,36 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import styled from 'styled-components';
+import { ThemeContext } from '../../ThemeProvider';
 
 const Styles = styled.div`
     display: flex;
     flex-flow: column;
-    height: 40px;
-    width: 200px;
-    background-color: transparent;
-    position: relative;
-    border-radius: 3px;
-    animation-name: input-animation;
-    animation-duration: 1s;
-
-    @keyframes input-animation {
-        from {opacity: 0.1;}
-        to {opacity: 1}
-    }
+    height: 80px;
+    width: 100%;
 `
 
 const Input = styled.input`
-    border: none;
-    background: transparent;
-    border-bottom: 1px solid #FFFFFF;
-    outline: none;
-    position:absolute;
-    bottom: 0;
-    width: 97%;
-    padding-left: 4px;
-    color: #FFFFFF;
+    border: 2px solid ${props => props.theme.darkTheme ? '#222f44' : '#e2e7ed'};
+    background-color: ${props => props.theme.darkTheme ? '#132035' : '#f0f2f7'};
+    border-radius: 7px;
+    height: 30px;
+    padding-left: 10px;
+    font-size: 15px;
+    color: ${props => props.theme.darkTheme ? 'white' : 'black'};
 
-    &:focus, &:valid {
-        border-bottom: 1px solid #61892F;
+    :focus {
+        outline: none;
+        border: 2px solid ${props => props.theme.darkTheme ? '#81a7ff' : '#4372fc'};
     }
-
+    
 `
 
 const Label = styled.label`
-    color: #FFFFFF;
-    position: absolute; 
-    display: block;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    bottom: 10px;
-    left: 4px;
-
-    ${Input}:focus + & {
-        color: #61892F;
-        transform: translateY(-70%);
-        font-size: 14px;
-    }
-
-    ${Input}:valid + & {
-        color: #61892F;
-        transform: translateY(-70%);
-        font-size: 14px;
-    }
-
+    width: 100%;
+    text-align: left;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: ${(props) => props.theme.darkTheme ? 'white' : 'black'}
 `
 
 function MiniLeagueIDInput({ value, handleChange }) {
@@ -66,10 +41,22 @@ function MiniLeagueIDInput({ value, handleChange }) {
         inputRef.current.focus();
     })
 
+    const { darkTheme } = useContext(ThemeContext);
+
+    Input.defaultProps = {
+        theme: {
+          darkTheme: darkTheme  }
+    }
+
+    Label.defaultProps = {
+        theme: {
+          darkTheme: darkTheme  }
+    }
+
     return (
         <Styles>
-            <Input ref={inputRef} id='mini-league-id' value={value} onChange={handleChange} autoComplete='off' required/>
             <Label htmlFor='mini-league-id'>Mini-league ID</Label>
+            <Input ref={inputRef} id='mini-league-id' value={value} onChange={handleChange} autoComplete='off' required/>
         </Styles>
     )
 }

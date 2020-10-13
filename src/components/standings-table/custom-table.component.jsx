@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import styled from 'styled-components';
+import { ThemeContext } from '../../ThemeProvider';
 
 const Styles = styled.div`
 
@@ -13,8 +14,9 @@ const Styles = styled.div`
     th {
         font-weight: 500;
         line-height:1em;
-        background-color: #FFFFFF;
-        border: 1px solid #ddd;
+        background-color: ${props => props.theme.darkTheme ? '#0e182a' : 'white'};
+        border: 1px solid ${props => props.theme.darkTheme ? '#222f44' : '#ddd'};
+        color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
     }
 
     tr {
@@ -23,16 +25,17 @@ const Styles = styled.div`
 
     td {
         color: #222629;
-        border: 1px solid #ddd;
+        border: 1px solid ${props => props.theme.darkTheme ? '#222f44' : '#ddd'};
+        color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
     }
 
 
     .dark {
-        background-color: #FFFFFF;
+        background-color: ${props => props.theme.darkTheme ? '#0e182a' : 'white'};
     }
 
     .light {
-        background-color: #F2F2F2;
+        background-color:  ${props => props.theme.darkTheme ? '#132035' : '#f2f2f2'};
     }
 
     animation-name: table-animation;
@@ -46,6 +49,14 @@ const Styles = styled.div`
 `
 
 function CustomTable({data, pageNumber}) {
+
+    const { darkTheme } = useContext(ThemeContext)
+    
+    Styles.defaultProps = {
+        theme: {
+          darkTheme: darkTheme  }
+    }
+
     return(
         <Styles>
             <table>

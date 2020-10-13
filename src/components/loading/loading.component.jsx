@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import styled from 'styled-components';
+import { ThemeContext } from '../../ThemeProvider';
 
 const Styles = styled.div`
     border: 8px solid transparent;
-    border-top: 8px solid #61892f;
+    border-top: 8px solid ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
     border-radius: 50%;
     width: 30px;
     height: 30px;
@@ -18,6 +19,14 @@ const Styles = styled.div`
 
 
 export default function Loading() {
+
+    const {darkTheme} = useContext(ThemeContext)
+    
+    Styles.defaultProps = {
+        theme: {
+          darkTheme: darkTheme  }
+    }
+
     return(
         <Styles />
     )
