@@ -14,15 +14,18 @@ async function Calculation(miniLeagueID) {
     let miniLeagueTeams = [];
     try {
         miniLeagueTeams = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
+        console.log(miniLeagueTeams.length)
     } catch(e) {
-        alert(e);
-        return [];
+        return { teams: [], error: e };
     }
-    
+    console.log(miniLeagueTeams.length)
     let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
     
     let miniLeagueTeamsDataArray = [];
-
+    console.log(miniLeagueTeams.length)
+    setTimeout(() => {
+        console.log(miniLeagueTeams.length)
+    }, 1000)
     for(let i = 0; i < miniLeagueTeams.length; i++) {
         let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
         let realTeamPlayingPositions = {
@@ -249,7 +252,7 @@ async function Calculation(miniLeagueID) {
     console.log('kraj')
     quickSort(miniLeagueTeamsDataArray, 0, miniLeagueTeamsDataArray.length - 1);
 
-    return miniLeagueTeamsDataArray;
+    return {teams: miniLeagueTeamsDataArray, error: ''};
 
 }
 
@@ -333,14 +336,22 @@ function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activ
 }
 
 export async function getMiniLeagueName(miniLeagueID) {
-    let response = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+    let response = {};
+    try {
+        response = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+    } catch (error) {
+        error.message = 'Wrong mini-league ID. Please try again'
+        throw error;
+    }
     
     return response.data.league.name;
 }
 
 async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
-    let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
     
+    let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+    console.log(miniLeagueData.data.standings.results.length);
+    console.log('hejhej')
     //if there are more than 50 teams
     let next_page = 2;
     let has_next = miniLeagueData.data.standings.has_next;
@@ -350,24 +361,31 @@ async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
         miniLeagueData.data.standings.results.push(...newTeams.data.standings.results);
         next_page++;
     }
-
+    
     //we are limiting our calculation to 500 teams at max 
     //if mini-league has got more than 500 teams throw an error
     if(next_page >= 11) {
         let error = new Error()
-        error.message = 'There is more than 500 participants in your league! Please only enter leagues with lower number of participants.'
+        error.message = 'There is more than 500 teams in your league! Only enter leagues with lower number of the teams.'
         throw error;
     }
 
     let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
-    let miniLeagueTeams = []; 
-    miniLeaguePlayersData.forEach(async teamID => {
+    console.log(miniLeaguePlayersData.length);
+    let miniLeagueTeams = await getEachPlayerInfo(miniLeaguePlayersData, gameweek)
+    
+    return miniLeagueTeams;
+}
+
+async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
+
+    let miniLeagueTeams = Promise.all(miniLeaguePlayersData.map(async teamID => {
         const url = `https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/entry/${teamID.entry}/event/${gameweek}/picks/`
         let response = await axios.get(url);
         let picks = getPlayersType(response.data.picks);
-        miniLeagueTeams.push({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
-    });
-
+        return ({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
+    }));
+    
     return miniLeagueTeams;
 }
 

@@ -39,7 +39,7 @@ function MiniLeagueIDInput({ value, handleChange }) {
 
     useEffect(() => {
         inputRef.current.focus();
-    })
+    }, [])
 
     const { darkTheme } = useContext(ThemeContext);
 
