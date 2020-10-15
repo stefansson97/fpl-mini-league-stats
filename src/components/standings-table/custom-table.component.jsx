@@ -70,7 +70,6 @@ function CustomTable({data, pageNumber}) {
                         <th>Player Name</th>
                         <th>Team Name</th>
                         <th>Captain</th>
-                        <th>Vice Captain</th>
                         <th>Gameweek</th>
                         <th>Total</th>
                     </tr>
@@ -83,7 +82,6 @@ function CustomTable({data, pageNumber}) {
                                 <td>{team.player_name}</td>
                                 <td>{team.entry_name}</td>
                                 <td>{team.captain}</td>
-                                <td>{team.vice_captain}</td>
                                 <td>{team.event_total}</td>
                                 <td>{team.total}</td>
                             </tr>

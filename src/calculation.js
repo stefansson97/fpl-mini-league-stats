@@ -49,7 +49,7 @@ async function Calculation(miniLeagueID) {
         let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
         for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
-
+            console.log('jedan field player')
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
             let playerTeamActivity = miniLeagueTeams[i].picks[j];
             
@@ -79,6 +79,7 @@ async function Calculation(miniLeagueID) {
             if(!hisGameStarted) continue;
             //if his game ended and player did not enter the game
             if(hisGameEnded && playerStats.minutes <= 0) {
+                console.log('nije igrao' + playerTeamActivity.element_type)
                 if(playerTeamActivity.element_type === 'GKP') {
                     didFirstGKPlayed = false;
                     continue;
@@ -96,8 +97,8 @@ async function Calculation(miniLeagueID) {
             }    
         }
         //add captain(or vicecaptain) points after the iteration of the first 11 players
-        pointsSum += addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints, captainDidNotEnter);
-        if(captainDidNotEnter) {
+        pointsSum += addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints, captainDidNotEnter, captainName);
+        if(captainDidNotEnter || !captainName) {
             captainName = viceCaptainName;
         }
         //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
@@ -114,69 +115,95 @@ async function Calculation(miniLeagueID) {
             }
             //if we have less than 3 playing players in defence we must pick one from the bench
             let j = 12;
-            while(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF < 3 && j < 15) {
-                let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
-                let playerTeamActivity = miniLeagueTeams[i].picks[j];
-                if(playerTeamActivity.element_type === 'DEF') {
-                    if(playerStats.minutes > 0) {
-                        let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
-                        pointsSum += (playerStats.total_points + potentialBonus);
-                        realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
-                        playCounter++;
-                        didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
-                        miniLeagueTeams[i].picks.splice(j, 1);
-                    }
-                }
+            while(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF < 3) {
                 //if there are no 3 playing players from defence we must take one/two/three with 0 minutes
-                if(j === 14) {
+                console.log(j)
+                console.log(miniLeagueTeams[i].picks[j])
+                if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
+                    console.log('aaaaaaaaaaaa')
                     if(realTeamPlayingPositions.DEF === 0) {
                         realTeamPlayingPositions['DEF'] += 3;
                         playCounter += 3;
                         didNotPlayFieldPlayers['DEF'] -= 3;
+                        break;
                     } else if(realTeamPlayingPositions.DEF === 1) {
                         realTeamPlayingPositions['DEF'] += 2;
                         playCounter += 2;
                         didNotPlayFieldPlayers['DEF'] -= 2;
+                        break;
                     } else if(realTeamPlayingPositions.DEF === 2) {
                         realTeamPlayingPositions['DEF'] += 1;
                         playCounter += 1;
                         didNotPlayFieldPlayers['DEF'] -= 1;
+                        break;
                     }
                 }
-                j++;
-            }
-            //if we have less than 2 players in midfield we must pick one from the bench
-            j =  12;
-            while(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID < 2 && j < 15) {
+                console.log('ni ne udje ovde')
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
-                if(playerTeamActivity.element_type === 'MID') {
+                if(playerTeamActivity.element_type === 'DEF') {
                     if(playerStats.minutes > 0) {
+                        console.log('doda defanzivca')
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                         pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
+                        j--;
                     }
                 }
+                
+                j++;
+            }
+            //if we have less than 2 players in midfield we must pick one from the bench
+            j =  12;
+            while(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID < 2) {
                 //if there are no 2 playing players from midfield we must take one/two with 0 minutes
-                if(j === 14) {
+                if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
                     if(realTeamPlayingPositions.MID === 0) {
+                        console.log('tu sam dodao veznjaka sa 0')
                         realTeamPlayingPositions['MID'] += 2;
                         playCounter += 2;
                         didNotPlayFieldPlayers['MID'] -= 2;
+                        break;
                     } else if(realTeamPlayingPositions.MID === 1) {
                         realTeamPlayingPositions['MID'] += 1;
                         playCounter += 1;
                         didNotPlayFieldPlayers['MID'] -= 1;
+                        break;
                     } 
                 }
+                console.log(j)
+                let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
+                let playerTeamActivity = miniLeagueTeams[i].picks[j];
+                if(playerTeamActivity.element_type === 'MID') {
+                    if(playerStats.minutes > 0) {
+                        console.log('dodajemo veznjaka')
+                        let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
+                        pointsSum += (playerStats.total_points + potentialBonus);
+                        realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                        playCounter++;
+                        didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+                        miniLeagueTeams[i].picks.splice(j, 1);
+                        j--;
+                    }
+                }
                 j++;
-            }
+            } 
             //if we have less than 1 player in attack we must pick one from the bench
             j = 12;
-            while(teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD < 1 && j < 15) {
+            while(teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD < 1) {
+                //if there is no 1 playing attacker we must take one with 0 minutes
+                if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined) ) {
+                    if(realTeamPlayingPositions.FWD === 0) {
+                        console.log('tu sam dodao napadaca sa 0')
+                        realTeamPlayingPositions['FWD'] += 1;
+                        playCounter += 1;
+                        didNotPlayFieldPlayers['FWD'] -= 1;
+                        break;
+                    } 
+                }
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerTeamActivity.element_type === 'FWD') {
@@ -187,16 +214,10 @@ async function Calculation(miniLeagueID) {
                         playCounter++;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
+                        j--;
                     }
                 }
-                //if there is no 1 playing attacker we must take one with 0 minutes
-                if(j === 14) {
-                    if(realTeamPlayingPositions.MID === 0) {
-                        realTeamPlayingPositions['FWD'] += 1;
-                        playCounter += 1;
-                        didNotPlayFieldPlayers['FWD'] -= 1;
-                    } 
-                }
+
                 j++;
             }
             //looping our 3 field subs
@@ -233,12 +254,17 @@ async function Calculation(miniLeagueID) {
         //it drasticly slows down the algorithm
 
         miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry;        
-        miniLeagueTeamsPoints['total'] = pointsSum + miniLeagueTeams[i].total_points - miniLeagueTeams[i].event_total;
         miniLeagueTeamsPoints['event_total'] = pointsSum;
         miniLeagueTeamsPoints['player_name'] = miniLeagueTeams[i].player_name; 
         miniLeagueTeamsPoints['entry_name'] = miniLeagueTeams[i].entry_name;
         miniLeagueTeamsPoints['captain'] = captainName;
-        miniLeagueTeamsPoints['vice_captain'] = viceCaptainName;
+
+        //if the fpl api is not updated the first time this gameweek, we are working with data from the last gameweek
+        if(dateForGameweekPickAndAPIUpdate < firstAPIUpdate) {
+            miniLeagueTeamsPoints['total'] = pointsSum + miniLeagueTeams[i].total_points;
+        } else {
+            miniLeagueTeamsPoints['total'] = pointsSum + miniLeagueTeams[i].total_points - miniLeagueTeams[i].event_total;
+        }
         
         // miniLeagueTeamsPoints['num_of_transfers'] = numOfTransfers;  
         miniLeagueTeamsDataArray.push(miniLeagueTeamsPoints)
@@ -317,12 +343,12 @@ function getGameweekNumberAndFirstAPIUpdate() {
     return {gameweek, firstAPIUpdate, gameweekFixtures}
 }
 
-function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints, captainDidNotEnter) {
+function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints, captainDidNotEnter, captainName) {
     if(didCaptainPlay) {
         if(activeChip === '3xc') return captainPoints * 2;
         return captainPoints;
     }
-    if(didViceCaptainPlay && captainDidNotEnter) {
+    if(didViceCaptainPlay && (captainDidNotEnter || !captainName)) {
         if(activeChip === '3xc') return viceCaptainPoints * 2;
         return viceCaptainPoints
     }

@@ -62,11 +62,11 @@ function TableButtons({clickPrevious, clickNext, pageNumber, totalPages}) {
         <Styles>
             <button onClick={clickPrevious} className={'page-btn' + (pageNumber === 1 ? ' disabled' : '')}>
                 <div className='desktop-btn-text'>Previous</div>
-                <div className='mobile-btn-text'><i class="fas fa-arrow-left"></i></div>
+                <div className='mobile-btn-text'><i className="fas fa-arrow-left"></i></div>
             </button>
             <button onClick={clickNext} className={'page-btn' + (pageNumber === totalPages ? ' disabled' : '')}>
                 <div className='desktop-btn-text'>Next</div>
-                <div className='mobile-btn-text'><i class="fas fa-arrow-right"></i></div>
+                <div className='mobile-btn-text'><i className="fas fa-arrow-right"></i></div>
             </button>
         </Styles>
     )

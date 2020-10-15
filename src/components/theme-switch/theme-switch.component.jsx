@@ -4,8 +4,8 @@ import { ThemeContext } from '../../ThemeProvider';
 
 const Styles = styled.div`
     position: absolute;
-    top: 30px;
-    right: 50px;
+    top: 4%;
+    right: 4%;
     color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
     cursor: pointer;
 `
