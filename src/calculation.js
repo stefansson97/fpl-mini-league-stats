@@ -14,18 +14,13 @@ async function Calculation(miniLeagueID) {
     let miniLeagueTeams = [];
     try {
         miniLeagueTeams = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
-        console.log(miniLeagueTeams.length)
     } catch(e) {
         return { teams: [], error: e };
     }
-    console.log(miniLeagueTeams.length)
+    
     let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
     
     let miniLeagueTeamsDataArray = [];
-    console.log(miniLeagueTeams.length)
-    setTimeout(() => {
-        console.log(miniLeagueTeams.length)
-    }, 1000)
     for(let i = 0; i < miniLeagueTeams.length; i++) {
         let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
         let realTeamPlayingPositions = {
@@ -53,7 +48,6 @@ async function Calculation(miniLeagueID) {
         let pointsSum = 0;
         let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
-        console.log('jedan igrac')
         for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
 
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
@@ -249,7 +243,7 @@ async function Calculation(miniLeagueID) {
         // miniLeagueTeamsPoints['num_of_transfers'] = numOfTransfers;  
         miniLeagueTeamsDataArray.push(miniLeagueTeamsPoints)
     }
-    console.log('kraj')
+    
     quickSort(miniLeagueTeamsDataArray, 0, miniLeagueTeamsDataArray.length - 1);
 
     return {teams: miniLeagueTeamsDataArray, error: ''};
@@ -350,8 +344,7 @@ export async function getMiniLeagueName(miniLeagueID) {
 async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
     
     let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
-    console.log(miniLeagueData.data.standings.results.length);
-    console.log('hejhej')
+
     //if there are more than 50 teams
     let next_page = 2;
     let has_next = miniLeagueData.data.standings.has_next;
@@ -366,12 +359,12 @@ async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
     //if mini-league has got more than 500 teams throw an error
     if(next_page >= 11) {
         let error = new Error()
-        error.message = 'There is more than 500 teams in your league! Only enter leagues with lower number of the teams.'
+        error.message = 'There is more than 500 teams in your league! Please only enter the leagues with less than 500 teams.'
         throw error;
     }
 
     let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
-    console.log(miniLeaguePlayersData.length);
+    
     let miniLeagueTeams = await getEachPlayerInfo(miniLeaguePlayersData, gameweek)
     
     return miniLeagueTeams;
@@ -385,7 +378,7 @@ async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
         let picks = getPlayersType(response.data.picks);
         return ({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
     }));
-    
+
     return miniLeagueTeams;
 }
 

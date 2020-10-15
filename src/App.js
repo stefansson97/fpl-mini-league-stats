@@ -6,6 +6,8 @@ import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
 import SubmitButton from './components/submit-button/submit-button.component';
 import Loading from './components/loading/loading.component';
 import CustomTable from './components/standings-table/custom-table.component';
+import ResponsiveTable from './components/standings-table/responsive-table.component';
+import TableButtons from './components/table-buttons/table-buttons.component';
 import ThemeSwitch from './components/theme-switch/theme-switch.component';
 import ErrorBox from './components/error-box/error-box.component';
 
@@ -17,7 +19,7 @@ const Styles = styled.div`
   justify-content: flex-start;
   align-items: center;
   padding: 50px;
-  padding-bottom: 1900px;
+  padding-bottom: 100px;
   position: relative;
   background-color: ${(props) => props.theme.darkTheme ? '#0e182a' : 'white'};
 
@@ -46,31 +48,6 @@ const Styles = styled.div`
     color: ${(props) => props.theme.darkTheme ? 'white' : '#0e182a'};
     animation-name: title-animation;
     animation-duration: 1s;
-  }
-
-  .buttons-div {
-    display: flex;
-    justify-content: space-between;
-    width: 90%;
-  }
-
-  .page-btn {
-    border: none;
-    border-radius: 5px;
-    background-color: ${(props) => props.theme.darkTheme ? 'white' : '#0e182a'};
-    color: ${(props) => props.theme.darkTheme ? '#0e182a' : 'white'};
-    cursor: pointer;
-    outline: none;
-    width: 20%;
-    height: 50px;
-    margin-top: 5px;
-    font-size: 1.2rem;
-    transition: all 0.5s ease;
-  }
-
-  .disabled {
-    opacity: 0.3;
-    pointer-events: none;
   }
 
   a {
@@ -154,6 +131,8 @@ function App() {
       name = await getMiniLeagueName(miniLeagueID);
     } catch(error) {
       setError(error);
+      setIsLoadingName(false);
+      setIsLoadingData(false);
       return;
     }
     setMiniLeagueName(name);
@@ -182,9 +161,11 @@ function App() {
       {error ? <ErrorBox error={error} /> : null}
       <form onSubmit={handleFormSubmit}>
         <MiniLeagueIDInput  value={miniLeagueID} handleChange={handleInputChange}/>
-        <div className='suggestion' onClick={handleSuggestion}>
-          {miniLeagueIDLocalStorage}
-        </div>
+        {miniLeagueIDLocalStorage ? (
+          <div className='suggestion' onClick={handleSuggestion}>
+            {miniLeagueIDLocalStorage}
+          </div>
+        ) : null}
         <SubmitButton>Submit</SubmitButton>
       </form>
       <ThemeSwitch />
@@ -194,10 +175,8 @@ function App() {
         (standingsData && (standingsData.length > 0)) ? (
           <>
             <CustomTable data={standingsData} pageNumber={pageNumber} />
-            <div className='buttons-div'>
-              <button onClick={handleButtonClickPrevious} className={'page-btn' + (pageNumber === 1 ? ' disabled' : '')}>Previous</button>
-              <button onClick={handleButtonClickNext} className={'page-btn' + (pageNumber === totalPages ? ' disabled' : '')}>Next</button>
-            </div>
+            <ResponsiveTable data={standingsData} pageNumber={pageNumber} />
+            <TableButtons clickPrevious={handleButtonClickPrevious} clickNext={handleButtonClickNext} pageNumber={pageNumber} totalPages={totalPages}/>
         </>
         ) : null
       )}

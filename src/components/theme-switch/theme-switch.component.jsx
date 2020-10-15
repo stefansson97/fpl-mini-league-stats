@@ -7,6 +7,7 @@ const Styles = styled.div`
     top: 30px;
     right: 50px;
     color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
+    cursor: pointer;
 `
 
 function ThemeSwitch() {

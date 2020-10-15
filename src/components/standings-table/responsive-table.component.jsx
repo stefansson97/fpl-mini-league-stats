@@ -3,28 +3,32 @@ import styled from 'styled-components';
 import { ThemeContext } from '../../ThemeProvider';
 
 const Styles = styled.div`
+    
+    width: 100%;
+    display: none;
 
     @media only screen and (max-width: 780px) {
-        display: none;
+        display: block;
     }
 
-    width: 90%;
+    .team-and-manager {
+        display: flex;
+        flex-flow: column;
+    }
+
 
     table {
         width: 100%;
         border-collapse: collapse;
     }
-    
+
     th {
         font-weight: 500;
         line-height:1em;
+        height: 30px;
         background-color: ${props => props.theme.darkTheme ? '#0e182a' : 'white'};
         border: 1px solid ${props => props.theme.darkTheme ? '#222f44' : '#ddd'};
         color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
-    }
-
-    tr {
-        height: 30px;
     }
 
     td {
@@ -32,7 +36,6 @@ const Styles = styled.div`
         border: 1px solid ${props => props.theme.darkTheme ? '#222f44' : '#ddd'};
         color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
     }
-
 
     .dark {
         background-color: ${props => props.theme.darkTheme ? '#0e182a' : 'white'};
@@ -49,41 +52,39 @@ const Styles = styled.div`
         from {opacity: 0.5;}
         to {opacity: 1}
     }
-
 `
 
-function CustomTable({data, pageNumber}) {
 
-    const { darkTheme } = useContext(ThemeContext)
-    
+
+function ResponsiveTable({data, pageNumber}) {
+
+    const { darkTheme } = useContext(ThemeContext);
+
     Styles.defaultProps = {
         theme: {
           darkTheme: darkTheme  }
     }
 
-    return(
+    return (
         <Styles>
             <table>
                 <thead>
                     <tr>
                         <th>Rank</th>
-                        <th>Player Name</th>
-                        <th>Team Name</th>
-                        <th>Captain</th>
-                        <th>Vice Captain</th>
-                        <th>Gameweek</th>
-                        <th>Total</th>
+                        <th>Team & Manager</th>
+                        <th>GW</th>
+                        <th>TOT</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((team, idx) => {
+                {data.map((team, idx) => {
                         return (
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
                                 <td>{((pageNumber - 1) * 10) + idx + 1}</td>
-                                <td>{team.player_name}</td>
-                                <td>{team.entry_name}</td>
-                                <td>{team.captain}</td>
-                                <td>{team.vice_captain}</td>
+                                <td className='team-and-manager'>
+                                    <div>{team.entry_name}</div>
+                                    <div>{team.player_name}</div>
+                                </td>
                                 <td>{team.event_total}</td>
                                 <td>{team.total}</td>
                             </tr>
@@ -95,4 +96,4 @@ function CustomTable({data, pageNumber}) {
     )
 }
 
-export default CustomTable;
+export default ResponsiveTable;
