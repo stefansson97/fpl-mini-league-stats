@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import styled from 'styled-components';
-import { ThemeContext } from '../../themeProvider';
+import { ThemeContext } from '../../ThemeProvider';
 
 const Styles = styled.div`
     display: flex;

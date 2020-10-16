@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
-import { ThemeContext } from './themeProvider';
+import { ThemeContext } from './ThemeProvider';
 import Calculation, { getMiniLeagueName } from './calculation';
 import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
 import SubmitButton from './components/submit-button/submit-button.component';
