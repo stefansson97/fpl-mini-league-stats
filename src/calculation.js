@@ -17,7 +17,7 @@ async function Calculation(miniLeagueID) {
     } catch(e) {
         return { teams: [], error: e };
     }
-    
+
     let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
     
     let miniLeagueTeamsDataArray = [];
@@ -49,7 +49,6 @@ async function Calculation(miniLeagueID) {
         let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
         for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
-            console.log('jedan field player')
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
             let playerTeamActivity = miniLeagueTeams[i].picks[j];
             
@@ -79,7 +78,6 @@ async function Calculation(miniLeagueID) {
             if(!hisGameStarted) continue;
             //if his game ended and player did not enter the game
             if(hisGameEnded && playerStats.minutes <= 0) {
-                console.log('nije igrao' + playerTeamActivity.element_type)
                 if(playerTeamActivity.element_type === 'GKP') {
                     didFirstGKPlayed = false;
                     continue;
@@ -117,10 +115,7 @@ async function Calculation(miniLeagueID) {
             let j = 12;
             while(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF < 3) {
                 //if there are no 3 playing players from defence we must take one/two/three with 0 minutes
-                console.log(j)
-                console.log(miniLeagueTeams[i].picks[j])
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
-                    console.log('aaaaaaaaaaaa')
                     if(realTeamPlayingPositions.DEF === 0) {
                         realTeamPlayingPositions['DEF'] += 3;
                         playCounter += 3;
@@ -138,12 +133,10 @@ async function Calculation(miniLeagueID) {
                         break;
                     }
                 }
-                console.log('ni ne udje ovde')
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerTeamActivity.element_type === 'DEF') {
                     if(playerStats.minutes > 0) {
-                        console.log('doda defanzivca')
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                         pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
@@ -162,7 +155,6 @@ async function Calculation(miniLeagueID) {
                 //if there are no 2 playing players from midfield we must take one/two with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
                     if(realTeamPlayingPositions.MID === 0) {
-                        console.log('tu sam dodao veznjaka sa 0')
                         realTeamPlayingPositions['MID'] += 2;
                         playCounter += 2;
                         didNotPlayFieldPlayers['MID'] -= 2;
@@ -174,12 +166,10 @@ async function Calculation(miniLeagueID) {
                         break;
                     } 
                 }
-                console.log(j)
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerTeamActivity.element_type === 'MID') {
                     if(playerStats.minutes > 0) {
-                        console.log('dodajemo veznjaka')
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                         pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
@@ -197,7 +187,6 @@ async function Calculation(miniLeagueID) {
                 //if there is no 1 playing attacker we must take one with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined) ) {
                     if(realTeamPlayingPositions.FWD === 0) {
-                        console.log('tu sam dodao napadaca sa 0')
                         realTeamPlayingPositions['FWD'] += 1;
                         playCounter += 1;
                         didNotPlayFieldPlayers['FWD'] -= 1;
@@ -222,10 +211,10 @@ async function Calculation(miniLeagueID) {
             }
             //looping our 3 field subs
             for(let j = 12; j < miniLeagueTeams[i].picks.length; j++) {
+                if(playCounter === 11) break;
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerStats.minutes <= 0) continue;
-                if(playCounter === 11) break;
                 if(didNotPlayFieldPlayers.DEF === 0 && didNotPlayFieldPlayers.MID === 0 && didNotPlayFieldPlayers.FWD === 0) break;
                 if(realTeamPlayingPositions.DEF >= 3 && realTeamPlayingPositions.MID >= 2 && realTeamPlayingPositions.FWD >=1) {
                     minimumPlayingPositions = true;
@@ -327,7 +316,7 @@ function teamAnalyze(picks) {
     return playerPositions;
 }
 
-function getGameweekNumberAndFirstAPIUpdate() {
+export function getGameweekNumberAndFirstAPIUpdate() {
     let gameweek = 0;
     let firstAPIUpdate = new Date();
     let dateForGameweekPickAndAPIUpdate = new Date();

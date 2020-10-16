@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import styled from 'styled-components';
-import { ThemeContext } from '../../ThemeProvider';
+import { ThemeContext } from '../../themeProvider';
+import { getGameweekNumberAndFirstAPIUpdate } from '../../calculation';
 
 const Styles = styled.div`
     
@@ -65,6 +66,8 @@ function ResponsiveTable({data, pageNumber}) {
           darkTheme: darkTheme  }
     }
 
+    const { gameweek } = getGameweekNumberAndFirstAPIUpdate();
+
     return (
         <Styles>
             <table>
@@ -72,7 +75,7 @@ function ResponsiveTable({data, pageNumber}) {
                     <tr>
                         <th>Rank</th>
                         <th>Team & Manager</th>
-                        <th>GW</th>
+                        <th>GW {gameweek}</th>
                         <th>TOT</th>
                     </tr>
                 </thead>
@@ -82,7 +85,11 @@ function ResponsiveTable({data, pageNumber}) {
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
                                 <td>{((pageNumber - 1) * 10) + idx + 1}</td>
                                 <td className='team-and-manager'>
-                                    <div>{team.entry_name}</div>
+                                    <div>
+                                        <a href={`https://fantasy.premierleague.com/entry/${team.entry}/event/${gameweek}`} target='_blank' rel='noopener noreferrer'>
+                                            {team.entry_name}
+                                        </a>
+                                    </div>
                                     <div>{team.player_name}</div>
                                 </td>
                                 <td>{team.event_total}</td>

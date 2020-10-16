@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import styled from 'styled-components';
-import { ThemeContext } from './ThemeProvider';
+import { ThemeContext } from './themeProvider';
 import Calculation, { getMiniLeagueName } from './calculation';
 import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
 import SubmitButton from './components/submit-button/submit-button.component';
@@ -21,6 +21,7 @@ const Styles = styled.div`
   padding: 50px;
   padding-bottom: 100px;
   position: relative;
+  transition: all 0.3s ease;
   background-color: ${(props) => props.theme.darkTheme ? '#0e182a' : 'white'};
 
   @keyframes title-animation {
@@ -50,8 +51,16 @@ const Styles = styled.div`
     animation-duration: 1s;
   }
 
-  a {
+  .mini-league-image-link {
     margin-top: 10px;
+  }
+
+  a {
+    color: #0087e2;
+  }
+
+  a:active {
+    color: red;
   }
 
   .suggestion {
@@ -169,7 +178,7 @@ function App() {
         <SubmitButton>Submit</SubmitButton>
       </form>
       <ThemeSwitch />
-      <a href='https://i.imgur.com/6TS3j2d.png' target='_blank' rel='noopener noreferrer'>What's the mini-league ID?</a>
+      <a href='https://i.imgur.com/6TS3j2d.png' className='mini-league-image-link' target='_blank' rel='noopener noreferrer'>What's the mini-league ID?</a>
       {miniLeagueName ? <div className='mini-league-title'>{miniLeagueName}</div> : null}
       {isLoadingName || isLoadingData ? <Loading /> : (
         (standingsData && (standingsData.length > 0)) ? (

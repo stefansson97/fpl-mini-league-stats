@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import styled from 'styled-components';
-import { ThemeContext } from '../../ThemeProvider';
+import { ThemeContext } from '../../themeProvider';
+import { getGameweekNumberAndFirstAPIUpdate } from '../../calculation';
 
 const Styles = styled.div`
 
@@ -9,7 +10,8 @@ const Styles = styled.div`
     }
 
     width: 90%;
-
+    transition: all 0.3s ease;
+    
     table {
         width: 100%;
         border-collapse: collapse;
@@ -61,6 +63,8 @@ function CustomTable({data, pageNumber}) {
           darkTheme: darkTheme  }
     }
 
+    const { gameweek } = getGameweekNumberAndFirstAPIUpdate();
+
     return(
         <Styles>
             <table>
@@ -70,7 +74,7 @@ function CustomTable({data, pageNumber}) {
                         <th>Player Name</th>
                         <th>Team Name</th>
                         <th>Captain</th>
-                        <th>Gameweek</th>
+                        <th>Gameweek {gameweek}</th>
                         <th>Total</th>
                     </tr>
                 </thead>
@@ -80,7 +84,11 @@ function CustomTable({data, pageNumber}) {
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
                                 <td>{((pageNumber - 1) * 10) + idx + 1}</td>
                                 <td>{team.player_name}</td>
-                                <td>{team.entry_name}</td>
+                                <td>
+                                <a href={`https://fantasy.premierleague.com/entry/${team.entry}/event/${gameweek}`} target='_blank' rel='noopener noreferrer'>
+                                    {team.entry_name}
+                                    </a>
+                                </td>
                                 <td>{team.captain}</td>
                                 <td>{team.event_total}</td>
                                 <td>{team.total}</td>
