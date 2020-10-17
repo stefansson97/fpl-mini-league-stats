@@ -391,7 +391,7 @@ async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
         const url = `https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/entry/${teamID.entry}/event/${gameweek}/picks/`
         let response = await axios.get(url);
         let picks = getPlayersType(response.data.picks);
-        return ({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.event_transfers_cost,  ...teamID})
+        return ({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.entry_history.event_transfers_cost,  ...teamID})
     }));
 
     return miniLeagueTeams;
