@@ -14,7 +14,6 @@ export default function ThemeProvider({children}) {
     }, [darkTheme]);
 
     const changeTheme = () => {
-        console.log(darkTheme)
         setDarkTheme(prevValue => !prevValue);
     }
 

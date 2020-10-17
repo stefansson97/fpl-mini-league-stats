@@ -439,12 +439,19 @@ async function getBonusPoints(gameweek) {
 
     if(todayFixtures.length !== 0) {
         todayFixtures.forEach(fixture => {
+            if(fixture.stats[9] === undefined) {
+                return [];
+            }
             let awayPlayersBps = fixture.stats[9].a;
             let homePlayersBps = fixture.stats[9].h;
-    
             let bonus = 3;
-    
             while(bonus > 0) {
+                if(awayPlayersBps.length === 0) {
+                    awayPlayersBps.push({value: 0})
+                }
+                if(homePlayersBps.length === 0) {
+                    homePlayersBps.push({value: 0})
+                }
                 if(awayPlayersBps[0].value < homePlayersBps[0].value) {
                     if(homePlayersBps[0].value === homePlayersBps[1].value) {
                         homePlayersBps[0]['bonus'] = bonus;
