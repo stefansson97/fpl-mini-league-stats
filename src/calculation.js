@@ -424,11 +424,13 @@ async function getBonusPoints(gameweek) {
     let allFixtures = await axios.get('https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/fixtures/');
     let thisGameweekFixtures = allFixtures.data.slice(gameweek * 10 - 10, gameweek * 10);
     let dateNow = new Date();
+    let dayNow = dateNow.getDate();
     //only consider fixtures that have started
 
     let todayFixtures = thisGameweekFixtures.filter(fixture => {
         let fixtureDate = new Date(fixture.kickoff_time);
-        return fixtureDate < dateNow
+        let fixtureDay = fixtureDate.getDate();
+        return (fixtureDate < dateNow && dayNow === fixtureDay)
     })
 
     if(todayFixtures.length === 0) return;
