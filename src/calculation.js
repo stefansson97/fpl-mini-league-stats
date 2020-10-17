@@ -436,6 +436,9 @@ async function getBonusPoints(gameweek) {
     let bonusPoints = [];
 
     todayFixtures.forEach(fixture => {
+        if(fixture.stats[9] === undefined) {
+            return [];
+        }
         let awayPlayersBps = fixture.stats[9].a;
         let homePlayersBps = fixture.stats[9].h;
 
