@@ -423,66 +423,67 @@ function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {
 async function getBonusPoints(gameweek) {
     let allFixtures = await axios.get('https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/fixtures/');
     let thisGameweekFixtures = allFixtures.data.slice(gameweek * 10 - 10, gameweek * 10);
-    let dayNow = new Date().getDate();
-    //only consider fixtures that are played today
+    let dateNow = new Date();
+    //only consider fixtures that have started
 
     let todayFixtures = thisGameweekFixtures.filter(fixture => {
-        let fixtureDayDate = new Date(fixture.kickoff_time).getDate();
-        return fixtureDayDate === dayNow
+        let fixtureDate = new Date(fixture.kickoff_time);
+        return fixtureDate < dateNow
     })
 
     if(todayFixtures.length === 0) return;
 
     let bonusPoints = [];
 
-    todayFixtures.forEach(fixture => {
-        if(fixture.stats[9] === undefined) {
-            return [];
-        }
-        let awayPlayersBps = fixture.stats[9].a;
-        let homePlayersBps = fixture.stats[9].h;
-
-        let bonus = 3;
-
-        while(bonus > 0) {
-            if(awayPlayersBps[0].value < homePlayersBps[0].value) {
-                if(homePlayersBps[0].value === homePlayersBps[1].value) {
+    if(todayFixtures.length !== 0) {
+        todayFixtures.forEach(fixture => {
+            let awayPlayersBps = fixture.stats[9].a;
+            let homePlayersBps = fixture.stats[9].h;
+    
+            let bonus = 3;
+    
+            while(bonus > 0) {
+                if(awayPlayersBps[0].value < homePlayersBps[0].value) {
+                    if(homePlayersBps[0].value === homePlayersBps[1].value) {
+                        homePlayersBps[0]['bonus'] = bonus;
+                        homePlayersBps[1]['bonus'] = bonus;
+                        bonus -= 2;
+                        bonusPoints.push(homePlayersBps[0], homePlayersBps[1])
+                        homePlayersBps.shift()
+                        homePlayersBps.shift()
+                    } else {
+                        homePlayersBps[0]['bonus'] = bonus;
+                        bonus--;
+                        bonusPoints.push(homePlayersBps[0])
+                        homePlayersBps.shift();
+                    }
+                } else if(awayPlayersBps[0].value === homePlayersBps[0].value) {
                     homePlayersBps[0]['bonus'] = bonus;
-                    homePlayersBps[1]['bonus'] = bonus;
-                    bonus -= 2;
-                    bonusPoints.push(homePlayersBps[0], homePlayersBps[1])
-                    homePlayersBps.shift()
-                    homePlayersBps.shift()
-                } else {
-                    homePlayersBps[0]['bonus'] = bonus;
-                    bonus--;
-                    bonusPoints.push(homePlayersBps[0])
-                    homePlayersBps.shift();
-                }
-            } else if(awayPlayersBps[0].value === homePlayersBps[0].value) {
-                homePlayersBps[0]['bonus'] = bonus;
-                awayPlayersBps[0]['bonus'] = bonus;
-                bonus -= 2;
-                bonusPoints.push(homePlayersBps[0], awayPlayersBps[0]);
-                awayPlayersBps.shift();
-                homePlayersBps.shift();
-            } else {
-                if(awayPlayersBps[0].value === awayPlayersBps[1].value) {
                     awayPlayersBps[0]['bonus'] = bonus;
-                    awayPlayersBps[1]['bonus'] = bonus;
                     bonus -= 2;
-                    bonusPoints.push(awayPlayersBps[0], awayPlayersBps[1])
-                    awayPlayersBps.shift()
-                    awayPlayersBps.shift()
-                } else {
-                    awayPlayersBps[0]['bonus'] = bonus;
-                    bonus--;
-                    bonusPoints.push(awayPlayersBps[0])
+                    bonusPoints.push(homePlayersBps[0], awayPlayersBps[0]);
                     awayPlayersBps.shift();
+                    homePlayersBps.shift();
+                } else {
+                    if(awayPlayersBps[0].value === awayPlayersBps[1].value) {
+                        awayPlayersBps[0]['bonus'] = bonus;
+                        awayPlayersBps[1]['bonus'] = bonus;
+                        bonus -= 2;
+                        bonusPoints.push(awayPlayersBps[0], awayPlayersBps[1])
+                        awayPlayersBps.shift()
+                        awayPlayersBps.shift()
+                    } else {
+                        awayPlayersBps[0]['bonus'] = bonus;
+                        bonus--;
+                        bonusPoints.push(awayPlayersBps[0])
+                        awayPlayersBps.shift();
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+
+    
     return bonusPoints;
 }
 
