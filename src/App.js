@@ -110,11 +110,11 @@ function App() {
   }
 
   useEffect(() => {
-    setTotalPages(Math.ceil(miniLeagueData.length / 10));
+    setTotalPages(Math.ceil(miniLeagueData.length / 20));
   }, [miniLeagueData])
 
   useEffect(() => {
-    setStandingsData(miniLeagueData.slice((pageNumber - 1) * 10, (pageNumber - 1) * 10 + 10));
+    setStandingsData(miniLeagueData.slice((pageNumber - 1) * 20, (pageNumber - 1) * 20 + 20));
   }, [pageNumber, miniLeagueData])
 
   const handleInputChange = (e) => {

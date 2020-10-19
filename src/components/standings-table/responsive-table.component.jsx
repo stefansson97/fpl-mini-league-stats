@@ -53,6 +53,21 @@ const Styles = styled.div`
         from {opacity: 0.5;}
         to {opacity: 1}
     }
+
+    .rank-icon-up {
+        color: rgb(0, 217, 0);
+        margin-left: 3px;
+    }
+
+    .rank-icon-down {
+        color: rgb(255, 0, 90);
+        margin-left: 3px;
+    }
+
+    .rank-icon-same {
+        color: rgb(148, 150, 140);
+        margin-left: 3px;
+    }
 `
 
 
@@ -81,9 +96,15 @@ function ResponsiveTable({data, pageNumber}) {
                 </thead>
                 <tbody>
                 {data.map((team, idx) => {
+                        let rank = ((pageNumber - 1) * 20) + idx + 1;
+                        let oldRank = team.last_rank;
                         return (
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
-                                <td>{((pageNumber - 1) * 10) + idx + 1}</td>
+                                <td>{`${rank}`}
+                                {rank > oldRank ? <i class="fas fa-caret-down rank-icon-down"></i> : null}
+                                {rank < oldRank ? <i class="fas fa-caret-up rank-icon-up"></i> : null}
+                                {rank === oldRank ? <i class="fas fa-circle rank-icon-same fa-xs"></i> : null}
+                                </td>
                                 <td className='team-and-manager'>
                                     <div>
                                         <a href={`https://fantasy.premierleague.com/entry/${team.entry}/event/${gameweek}`} target='_blank' rel='noopener noreferrer'>

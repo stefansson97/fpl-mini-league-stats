@@ -36,6 +36,7 @@ async function Calculation(miniLeagueID) {
         }
         let activeChip = miniLeagueTeams[i].active_chip;
         let playCounter = 0;
+        let leftToPlay = 11;
         let minimumPlayingPositions = false;
         let didFirstGKPlayed = true;
         let captainPoints = 0;
@@ -91,6 +92,7 @@ async function Calculation(miniLeagueID) {
                 pointsSum += (playerStats.total_points + potentialBonus);
                 realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                 playCounter++;
+                leftToPlay--;
                 continue;
             }    
         }
@@ -110,6 +112,7 @@ async function Calculation(miniLeagueID) {
                 pointsSum += (playerStats.total_points + potentialBonus);
                 realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                 playCounter++;
+                leftToPlay--;
             }
             //if we have less than 3 playing players in defence we must pick one from the bench
             let j = 12;
@@ -119,16 +122,19 @@ async function Calculation(miniLeagueID) {
                     if(realTeamPlayingPositions.DEF === 0) {
                         realTeamPlayingPositions['DEF'] += 3;
                         playCounter += 3;
+                        leftToPlay -= 3;
                         didNotPlayFieldPlayers['DEF'] -= 3;
                         break;
                     } else if(realTeamPlayingPositions.DEF === 1) {
                         realTeamPlayingPositions['DEF'] += 2;
                         playCounter += 2;
+                        leftToPlay -= 2;
                         didNotPlayFieldPlayers['DEF'] -= 2;
                         break;
                     } else if(realTeamPlayingPositions.DEF === 2) {
                         realTeamPlayingPositions['DEF'] += 1;
                         playCounter += 1;
+                        leftToPlay -= 1;
                         didNotPlayFieldPlayers['DEF'] -= 1;
                         break;
                     }
@@ -141,6 +147,7 @@ async function Calculation(miniLeagueID) {
                         pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
+                        leftToPlay--;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                         j--;
@@ -157,11 +164,13 @@ async function Calculation(miniLeagueID) {
                     if(realTeamPlayingPositions.MID === 0) {
                         realTeamPlayingPositions['MID'] += 2;
                         playCounter += 2;
+                        leftToPlay -= 2;
                         didNotPlayFieldPlayers['MID'] -= 2;
                         break;
                     } else if(realTeamPlayingPositions.MID === 1) {
                         realTeamPlayingPositions['MID'] += 1;
                         playCounter += 1;
+                        leftToPlay -= 1;
                         didNotPlayFieldPlayers['MID'] -= 1;
                         break;
                     } 
@@ -174,6 +183,7 @@ async function Calculation(miniLeagueID) {
                         pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
+                        leftToPlay--;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                         j--;
@@ -189,6 +199,7 @@ async function Calculation(miniLeagueID) {
                     if(realTeamPlayingPositions.FWD === 0) {
                         realTeamPlayingPositions['FWD'] += 1;
                         playCounter += 1;
+                        leftToPlay--;
                         didNotPlayFieldPlayers['FWD'] -= 1;
                         break;
                     } 
@@ -201,6 +212,7 @@ async function Calculation(miniLeagueID) {
                         pointsSum += (playerStats.total_points + potentialBonus);
                         realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
+                        leftToPlay--;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                         j--;
@@ -224,6 +236,7 @@ async function Calculation(miniLeagueID) {
                     pointsSum += (playerStats.total_points + potentialBonus);
                     realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                     playCounter++;
+                    leftToPlay--;
                     didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                     continue;
                 }
@@ -247,6 +260,8 @@ async function Calculation(miniLeagueID) {
         miniLeagueTeamsPoints['player_name'] = miniLeagueTeams[i].player_name; 
         miniLeagueTeamsPoints['entry_name'] = miniLeagueTeams[i].entry_name;
         miniLeagueTeamsPoints['captain'] = captainName;
+        miniLeagueTeamsPoints['left_to_play'] = leftToPlay;
+        miniLeagueTeamsPoints['last_rank'] = miniLeagueTeams[i].last_rank;
 
         //if the fpl api is not updated the first time this gameweek, we are working with data from the last gameweek
         if(dateForGameweekPickAndAPIUpdate < firstAPIUpdate) {
@@ -378,7 +393,7 @@ async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
         throw error;
     }
 
-    let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name}));
+    let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name, 'last_rank': team.last_rank}));
     
     let miniLeagueTeams = await getEachPlayerInfo(miniLeaguePlayersData, gameweek)
     

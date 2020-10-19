@@ -52,6 +52,17 @@ const Styles = styled.div`
         to {opacity: 1}
     }
 
+    .rank-icon-up {
+        color: rgb(0, 217, 0);
+    }
+
+    .rank-icon-down {
+        color: rgb(255, 0, 90);
+    }
+
+    .rank-icon-same {
+        color: rgb(148, 150, 140);
+    }
 `
 
 function CustomTable({data, pageNumber}) {
@@ -70,19 +81,26 @@ function CustomTable({data, pageNumber}) {
             <table>
                 <thead>
                     <tr>
-                        <th>Rank</th>
+                        <th>Rank (Old Rank)</th>
                         <th>Player Name</th>
                         <th>Team Name</th>
                         <th>Captain</th>
+                        <th>Left To Play</th>
                         <th>Gameweek {gameweek}</th>
                         <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data.map((team, idx) => {
+                        let rank = ((pageNumber - 1) * 20) + idx + 1;
+                        let oldRank = team.last_rank;
                         return (
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
-                                <td>{((pageNumber - 1) * 10) + idx + 1}</td>
+                                <td>{`${rank} (${oldRank}) `}
+                                {rank > oldRank ? <i class="fas fa-caret-down rank-icon-down"></i> : null}
+                                {rank < oldRank ? <i class="fas fa-caret-up rank-icon-up"></i> : null}
+                                {rank === oldRank ? <i class="fas fa-circle rank-icon-same fa-xs"></i> : null}
+                                </td>
                                 <td>{team.player_name}</td>
                                 <td>
                                 <a href={`https://fantasy.premierleague.com/entry/${team.entry}/event/${gameweek}`} target='_blank' rel='noopener noreferrer'>
@@ -90,6 +108,7 @@ function CustomTable({data, pageNumber}) {
                                     </a>
                                 </td>
                                 <td>{team.captain}</td>
+                                <td>{team.left_to_play}</td>
                                 <td>{team.event_total}</td>
                                 <td>{team.total}</td>
                             </tr>
