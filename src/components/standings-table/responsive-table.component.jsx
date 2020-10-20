@@ -97,7 +97,7 @@ function ResponsiveTable({data, pageNumber}) {
                 <tbody>
                 {data.map((team, idx) => {
                         let rank = ((pageNumber - 1) * 20) + idx + 1;
-                        let oldRank = team.last_rank;
+                        let oldRank = team.last_rank === 0 ? 'New' : team.last_rank;
                         return (
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
                                 <td>{`${rank}`}

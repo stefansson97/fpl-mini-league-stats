@@ -86,6 +86,7 @@ function CustomTable({data, pageNumber}) {
                         <th>Team Name</th>
                         <th>Captain</th>
                         <th>Left To Play</th>
+                        <th>Active Chip</th>
                         <th>Gameweek {gameweek}</th>
                         <th>Total</th>
                     </tr>
@@ -93,7 +94,17 @@ function CustomTable({data, pageNumber}) {
                 <tbody>
                     {data.map((team, idx) => {
                         let rank = ((pageNumber - 1) * 20) + idx + 1;
-                        let oldRank = team.last_rank;
+                        let oldRank = team.last_rank === 0 ? 'New' : team.last_rank;
+                        let activeChip = '-';
+                        if(team.active_chip === 'wildcard') {
+                            activeChip = 'Wildcard';
+                        } else if(team.active_chip === 'freehit') {
+                            activeChip = 'Free Hit'
+                        } else if(team.active_chip === '3xc') {
+                            activeChip = 'Triple Captain'
+                        } else if(team.active_chip === 'bboost') {
+                            activeChip = 'Bench Boost'
+                        }
                         return (
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
                                 <td>{`${rank} (${oldRank}) `}
@@ -109,6 +120,7 @@ function CustomTable({data, pageNumber}) {
                                 </td>
                                 <td>{team.captain}</td>
                                 <td>{team.left_to_play}</td>
+                                <td>{activeChip}</td>
                                 <td>{team.event_total}</td>
                                 <td>{team.total}</td>
                             </tr>

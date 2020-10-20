@@ -30,13 +30,20 @@ async function Calculation(miniLeagueID) {
             'FWD': 0
         };
         let didNotPlayFieldPlayers = {
+            'GKP': 0,
+            'DEF': 0,
+            'MID': 0,
+            'FWD': 0
+        }
+        let benchBoostDidNotPlay = {
+            'GKP': 0,
             'DEF': 0,
             'MID': 0,
             'FWD': 0
         }
         let activeChip = miniLeagueTeams[i].active_chip;
         let playCounter = 0;
-        let leftToPlay = 11;
+        let leftToPlay = activeChip === 'bboost' ? 15 : 11;
         let minimumPlayingPositions = false;
         let didFirstGKPlayed = true;
         let captainPoints = 0;
@@ -79,11 +86,14 @@ async function Calculation(miniLeagueID) {
             if(!hisGameStarted) continue;
             //if his game ended and player did not enter the game
             if(hisGameEnded && playerStats.minutes <= 0) {
+                if(activeChip === 'bboost') {
+                    benchBoostDidNotPlay[playerTeamActivity.element_type] += 1;
+                }
+                didNotPlayFieldPlayers[playerTeamActivity.element_type] += 1;
                 if(playerTeamActivity.element_type === 'GKP') {
                     didFirstGKPlayed = false;
                     continue;
                 }
-                didNotPlayFieldPlayers[playerTeamActivity.element_type] += 1
                 continue;   
             }
             //adding player points to the total score
@@ -243,6 +253,7 @@ async function Calculation(miniLeagueID) {
                 
             } 
         }
+        
         //if the fpl api is not updated the first time in this gameweek, we need to manually deduct potential transfer minus points
         //from the player's overall score
         //after the first update, those points are deducted from the overall score by the API
@@ -255,10 +266,27 @@ async function Calculation(miniLeagueID) {
         // let numOfTransfers = await getNumberOfTransfers(miniLeagueTeams[i].entry);
         //it drasticly slows down the algorithm
 
+
+        if(activeChip !== 'bboost') {
+            //this is the number of players that did not play and can't be substituted
+            let zeroPointPlayers = didNotPlayFieldPlayers['GKP'] + didNotPlayFieldPlayers['DEF'] + didNotPlayFieldPlayers['MID'] + didNotPlayFieldPlayers['FWD'];
+            if(zeroPointPlayers === leftToPlay) {
+                leftToPlay = 0;
+            }
+        } else {
+            let zeroPointPlayers = benchBoostDidNotPlay['GKP'] + benchBoostDidNotPlay['DEF'] + benchBoostDidNotPlay['MID'] + benchBoostDidNotPlay['FWD'];
+            if(zeroPointPlayers === leftToPlay) {
+                leftToPlay = 0;
+            }
+            console.log(zeroPointPlayers, leftToPlay)
+        }
+
+
         miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry;        
         miniLeagueTeamsPoints['event_total'] = pointsSum;
         miniLeagueTeamsPoints['player_name'] = miniLeagueTeams[i].player_name; 
         miniLeagueTeamsPoints['entry_name'] = miniLeagueTeams[i].entry_name;
+        miniLeagueTeamsPoints['active_chip'] = miniLeagueTeams[i].active_chip;
         miniLeagueTeamsPoints['captain'] = captainName;
         miniLeagueTeamsPoints['left_to_play'] = leftToPlay;
         miniLeagueTeamsPoints['last_rank'] = miniLeagueTeams[i].last_rank;
@@ -476,10 +504,8 @@ async function getBonusPoints(gameweek) {
                             }
                         }
                         for(let j = 0; j <= i; j++) {
-                            homePlayersBps[j]['bonus'] = bonus;
-                            bonusPoints.push(homePlayersBps[j])
-                        }
-                        for(let k = 0; k <= i; k++) {
+                            homePlayersBps[0]['bonus'] = bonus;
+                            bonusPoints.push(homePlayersBps[0])
                             homePlayersBps.shift()
                         }
                         bonus -= 2;
@@ -490,19 +516,15 @@ async function getBonusPoints(gameweek) {
                         homePlayersBps.shift();
                     }
                 } else if(awayPlayersBps[0].value === homePlayersBps[0].value) {
-                    let i;
-                    let j;
-                    let k;
+                    let i, j;
                     for(i = 0; i < awayPlayersBps.length; i++) {
                         if(awayPlayersBps[i].value !== awayPlayersBps[i+1].value) {
                             break;
                         }
                     }
                     for(j = 0; j <= i; j++) {
-                        awayPlayersBps[j]['bonus'] = bonus;
-                        bonusPoints.push(awayPlayersBps[j])
-                    }
-                    for(k = 0; k <= i; k++) {
+                        awayPlayersBps[0]['bonus'] = bonus;
+                        bonusPoints.push(awayPlayersBps[0])
                         awayPlayersBps.shift()
                     }
                     for(i = 0; i < homePlayersBps.length; i++) {
@@ -511,10 +533,8 @@ async function getBonusPoints(gameweek) {
                         }
                     }
                     for(j = 0; j <= i; j++) {
-                        homePlayersBps[j]['bonus'] = bonus;
-                        bonusPoints.push(homePlayersBps[j])
-                    }
-                    for(k = 0; k <= i; k++) {
+                        homePlayersBps[0]['bonus'] = bonus;
+                        bonusPoints.push(homePlayersBps[0])
                         homePlayersBps.shift()
                     }
                     bonus -= 2;
@@ -527,10 +547,8 @@ async function getBonusPoints(gameweek) {
                             }
                         }
                         for(let j = 0; j <= i; j++) {
-                            awayPlayersBps[j]['bonus'] = bonus;
-                            bonusPoints.push(awayPlayersBps[j])
-                        }
-                        for(let k = 0; k <= i; k++) {
+                            awayPlayersBps[0]['bonus'] = bonus;
+                            bonusPoints.push(awayPlayersBps[0])
                             awayPlayersBps.shift()
                         }
                         bonus -= 2;
@@ -544,7 +562,7 @@ async function getBonusPoints(gameweek) {
             }
         });
     }
-
+    console.log(bonusPoints)
     return bonusPoints;
 }
 
