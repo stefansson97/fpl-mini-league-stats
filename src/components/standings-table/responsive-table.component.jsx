@@ -101,9 +101,9 @@ function ResponsiveTable({data, pageNumber}) {
                         return (
                             <tr key={team.entry} className={idx % 2 === 0 ? 'dark' : 'light'}>
                                 <td>{`${rank}`}
-                                {rank > oldRank ? <i class="fas fa-caret-down rank-icon-down"></i> : null}
-                                {rank < oldRank ? <i class="fas fa-caret-up rank-icon-up"></i> : null}
-                                {rank === oldRank ? <i class="fas fa-circle rank-icon-same fa-xs"></i> : null}
+                                {rank > oldRank ? <i className="fas fa-caret-down rank-icon-down"></i> : null}
+                                {rank < oldRank ? <i className="fas fa-caret-up rank-icon-up"></i> : null}
+                                {rank === oldRank ? <i className="fas fa-circle rank-icon-same fa-xs"></i> : null}
                                 </td>
                                 <td className='team-and-manager'>
                                     <div>

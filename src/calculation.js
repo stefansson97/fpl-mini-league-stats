@@ -469,12 +469,20 @@ async function getBonusPoints(gameweek) {
                 }
                 if(awayPlayersBps[0].value < homePlayersBps[0].value) {
                     if(homePlayersBps[0].value === homePlayersBps[1].value) {
-                        homePlayersBps[0]['bonus'] = bonus;
-                        homePlayersBps[1]['bonus'] = bonus;
+                        let i;
+                        for(i = 0; i < homePlayersBps.length; i++) {
+                            if(homePlayersBps[i].value !== homePlayersBps[i+1].value) {
+                                break;
+                            }
+                        }
+                        for(let j = 0; j <= i; j++) {
+                            homePlayersBps[j]['bonus'] = bonus;
+                            bonusPoints.push(homePlayersBps[j])
+                        }
+                        for(let k = 0; k <= i; k++) {
+                            homePlayersBps.shift()
+                        }
                         bonus -= 2;
-                        bonusPoints.push(homePlayersBps[0], homePlayersBps[1])
-                        homePlayersBps.shift()
-                        homePlayersBps.shift()
                     } else {
                         homePlayersBps[0]['bonus'] = bonus;
                         bonus--;
@@ -482,20 +490,50 @@ async function getBonusPoints(gameweek) {
                         homePlayersBps.shift();
                     }
                 } else if(awayPlayersBps[0].value === homePlayersBps[0].value) {
-                    homePlayersBps[0]['bonus'] = bonus;
-                    awayPlayersBps[0]['bonus'] = bonus;
+                    let i;
+                    let j;
+                    let k;
+                    for(i = 0; i < awayPlayersBps.length; i++) {
+                        if(awayPlayersBps[i].value !== awayPlayersBps[i+1].value) {
+                            break;
+                        }
+                    }
+                    for(j = 0; j <= i; j++) {
+                        awayPlayersBps[j]['bonus'] = bonus;
+                        bonusPoints.push(awayPlayersBps[j])
+                    }
+                    for(k = 0; k <= i; k++) {
+                        awayPlayersBps.shift()
+                    }
+                    for(i = 0; i < homePlayersBps.length; i++) {
+                        if(homePlayersBps[i].value !== homePlayersBps[i+1].value) {
+                            break;
+                        }
+                    }
+                    for(j = 0; j <= i; j++) {
+                        homePlayersBps[j]['bonus'] = bonus;
+                        bonusPoints.push(homePlayersBps[j])
+                    }
+                    for(k = 0; k <= i; k++) {
+                        homePlayersBps.shift()
+                    }
                     bonus -= 2;
-                    bonusPoints.push(homePlayersBps[0], awayPlayersBps[0]);
-                    awayPlayersBps.shift();
-                    homePlayersBps.shift();
                 } else {
                     if(awayPlayersBps[0].value === awayPlayersBps[1].value) {
-                        awayPlayersBps[0]['bonus'] = bonus;
-                        awayPlayersBps[1]['bonus'] = bonus;
+                        let i;
+                        for(i = 0; i < awayPlayersBps.length; i++) {
+                            if(awayPlayersBps[i].value !== awayPlayersBps[i+1].value) {
+                                break;
+                            }
+                        }
+                        for(let j = 0; j <= i; j++) {
+                            awayPlayersBps[j]['bonus'] = bonus;
+                            bonusPoints.push(awayPlayersBps[j])
+                        }
+                        for(let k = 0; k <= i; k++) {
+                            awayPlayersBps.shift()
+                        }
                         bonus -= 2;
-                        bonusPoints.push(awayPlayersBps[0], awayPlayersBps[1])
-                        awayPlayersBps.shift()
-                        awayPlayersBps.shift()
                     } else {
                         awayPlayersBps[0]['bonus'] = bonus;
                         bonus--;
@@ -507,7 +545,6 @@ async function getBonusPoints(gameweek) {
         });
     }
 
-    
     return bonusPoints;
 }
 
