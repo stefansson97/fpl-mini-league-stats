@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "efcbf5c72e4ac0120c0170f469c87237",
+    "revision": "3dcff9f5b459e5de55792488174e4b6a",
     "url": "/fpl-mini-league-stats/index.html"
   },
   {
-    "revision": "ce3dfd55ddcc9ed6a433",
+    "revision": "4d17b437810d3a581e0a",
     "url": "/fpl-mini-league-stats/static/css/main.34a1f70c.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/fpl-mini-league-stats/static/js/2.62a256ff.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "ce3dfd55ddcc9ed6a433",
-    "url": "/fpl-mini-league-stats/static/js/main.ff6512cc.chunk.js"
+    "revision": "4d17b437810d3a581e0a",
+    "url": "/fpl-mini-league-stats/static/js/main.5ea5b0c3.chunk.js"
   },
   {
     "revision": "6ed4d6c1e42c808a835f",
