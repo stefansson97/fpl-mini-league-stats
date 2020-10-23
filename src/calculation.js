@@ -271,7 +271,6 @@ async function Calculation(miniLeagueID) {
         if(activeChip !== 'bboost') {
             //this is the number of players that did not play and can't be substituted
             let zeroPointPlayers = didNotPlayFieldPlayers['GKP'] + didNotPlayFieldPlayers['DEF'] + didNotPlayFieldPlayers['MID'] + didNotPlayFieldPlayers['FWD'];
-            console.log(zeroPointPlayers, leftToPlay);
             if(zeroPointPlayers === leftToPlay) {
                 leftToPlay = 0;
             }
@@ -280,7 +279,6 @@ async function Calculation(miniLeagueID) {
             if(zeroPointPlayers === leftToPlay) {
                 leftToPlay = 0;
             }
-            console.log(zeroPointPlayers, leftToPlay)
         }
 
 
