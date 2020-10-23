@@ -4,18 +4,6 @@ import { fixtures, gameweekDates } from './fixtures';
 
 async function Calculation(miniLeagueID) {
 
-    function compare( a, b ) {
-        if ( a.id < b.id ){
-          return -1;
-        }
-        if ( a.id > b.id ){
-          return 1;
-        }
-        return 0;
-      }
-      
-    players.sort( compare );
-    console.log(players)
     let gameweekData = getGameweekNumberAndFirstAPIUpdate();
     let gameweek = gameweekData.gameweek;
     let firstAPIUpdate = gameweekData.firstAPIUpdate
@@ -133,6 +121,7 @@ async function Calculation(miniLeagueID) {
                 let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                 pointsSum += (playerStats.total_points + potentialBonus);
                 realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
+                didNotPlayFieldPlayers['GKP'] -= 1;
                 playCounter++;
                 leftToPlay--;
             }
@@ -282,6 +271,7 @@ async function Calculation(miniLeagueID) {
         if(activeChip !== 'bboost') {
             //this is the number of players that did not play and can't be substituted
             let zeroPointPlayers = didNotPlayFieldPlayers['GKP'] + didNotPlayFieldPlayers['DEF'] + didNotPlayFieldPlayers['MID'] + didNotPlayFieldPlayers['FWD'];
+            console.log(zeroPointPlayers, leftToPlay);
             if(zeroPointPlayers === leftToPlay) {
                 leftToPlay = 0;
             }
