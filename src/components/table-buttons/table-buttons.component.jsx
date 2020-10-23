@@ -72,4 +72,4 @@ function TableButtons({clickPrevious, clickNext, pageNumber, totalPages}) {
     )
 }
 
-export default TableButtons;
+export default React.memo(TableButtons);

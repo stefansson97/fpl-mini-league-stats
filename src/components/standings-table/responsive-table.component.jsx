@@ -124,4 +124,4 @@ function ResponsiveTable({data, pageNumber}) {
     )
 }
 
-export default ResponsiveTable;
+export default React.memo(ResponsiveTable);

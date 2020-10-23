@@ -22,9 +22,11 @@ const Button = styled.button`
 
 
 
-export default function SubmitButton({children}) {
+function SubmitButton({children}) {
 
     return(
         <Button type='submit'>{children}</Button>
     )
 }
+
+export default React.memo(SubmitButton)

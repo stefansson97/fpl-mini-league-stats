@@ -32,7 +32,7 @@ export default function ErrorBox({error}) {
 
     return (
         <Styles>
-            {error.message}
+            {error.response.data}
         </Styles>
     )
 }

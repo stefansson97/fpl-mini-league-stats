@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import styled from 'styled-components';
 import { ThemeContext } from './ThemeProvider';
 import Calculation, { getMiniLeagueName } from './calculation';
 import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
+import MiniLeagueTitle from './components/ml-title/ml-title.components';
 import SubmitButton from './components/submit-button/submit-button.component';
 import Loading from './components/loading/loading.component';
 import CustomTable from './components/standings-table/custom-table.component';
@@ -10,6 +11,7 @@ import ResponsiveTable from './components/standings-table/responsive-table.compo
 import TableButtons from './components/table-buttons/table-buttons.component';
 import ThemeSwitch from './components/theme-switch/theme-switch.component';
 import ErrorBox from './components/error-box/error-box.component';
+import TeamPreview from './components/team-preview/team-preview.component';
 
 const Styles = styled.div`
   min-height: 100%;
@@ -102,6 +104,9 @@ function App() {
 
   const [error, setError] = useState('');
 
+  const [showPreview, setShowPreview] = useState(false);
+  const [picks, setPicks] = useState('');
+
   const { darkTheme } = useContext(ThemeContext);
 
   Styles.defaultProps = {
@@ -117,9 +122,9 @@ function App() {
     setStandingsData(miniLeagueData.slice((pageNumber - 1) * 20, (pageNumber - 1) * 20 + 20));
   }, [pageNumber, miniLeagueData])
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     setMiniLeagueID(e.target.value);
-  }
+  }, [setMiniLeagueID])
 
   const handleFormSubmit = async (e) => {
     
@@ -153,17 +158,29 @@ function App() {
     setIsLoadingData(false);
   }
 
-  const handleButtonClickNext = () => {
+  const handleButtonClickNext = useCallback(() => {
     setPageNumber(prevValue => prevValue + 1);
-  }
+  }, [setPageNumber])
 
-  const handleButtonClickPrevious = () => {
+  const handleButtonClickPrevious = useCallback(() => {
     setPageNumber(prevValue => prevValue - 1);
-  }
+  }, [setPageNumber])
 
   const handleSuggestion = async (e) => {
     setMiniLeagueID(miniLeagueIDLocalStorage);
   }
+
+  const handleMouseEnter = useCallback(() => {
+    setShowPreview(true);
+  }, [setShowPreview])
+
+  const handleMouseLeave = useCallback(() => {
+    setShowPreview(false);
+  }, [setShowPreview])
+
+  const handlePicks = useCallback((picks) => {
+    setPicks(picks);
+  }, [setPicks])
 
   return (
     <Styles>
@@ -179,11 +196,12 @@ function App() {
       </form>
       <ThemeSwitch />
       <a href='https://i.imgur.com/6TS3j2d.png' className='mini-league-image-link' target='_blank' rel='noopener noreferrer'>What's the mini-league ID?</a>
-      {miniLeagueName ? <div className='mini-league-title'>{miniLeagueName}</div> : null}
+      {miniLeagueName ? <MiniLeagueTitle miniLeagueName={miniLeagueName} /> : null}
+      {showPreview ? <TeamPreview picks={picks} /> : null}
       {isLoadingName || isLoadingData ? <Loading /> : (
         (standingsData && (standingsData.length > 0)) ? (
           <>
-            <CustomTable data={standingsData} pageNumber={pageNumber} />
+            <CustomTable data={standingsData} pageNumber={pageNumber} handlePicks={handlePicks} handleMouseEnter={handleMouseEnter} handleMouseLeave={handleMouseLeave} />
             <ResponsiveTable data={standingsData} pageNumber={pageNumber} />
             <TableButtons clickPrevious={handleButtonClickPrevious} clickNext={handleButtonClickNext} pageNumber={pageNumber} totalPages={totalPages}/>
         </>

@@ -65,7 +65,7 @@ const Styles = styled.div`
     }
 `
 
-function CustomTable({data, pageNumber}) {
+function CustomTable({data, pageNumber, handlePicks, handleMouseEnter, handleMouseLeave }) {
 
     const { darkTheme } = useContext(ThemeContext)
     
@@ -114,14 +114,17 @@ function CustomTable({data, pageNumber}) {
                                 </td>
                                 <td>{team.player_name}</td>
                                 <td>
-                                <a href={`https://fantasy.premierleague.com/entry/${team.entry}/event/${gameweek}`} target='_blank' rel='noopener noreferrer'>
-                                    {team.entry_name}
+                                    <a href={`https://fantasy.premierleague.com/entry/${team.entry}/event/${gameweek}`} target='_blank' rel='noopener noreferrer'>
+                                        {team.entry_name}
                                     </a>
                                 </td>
                                 <td>{team.captain}</td>
                                 <td>{team.left_to_play}</td>
                                 <td>{activeChip}</td>
-                                <td>{team.event_total}</td>
+                                <td onMouseEnter={() => {
+                                    handlePicks(team.picks);
+                                    handleMouseEnter();
+                                }} onMouseLeave={handleMouseLeave}>{team.event_total}</td>
                                 <td>{team.total}</td>
                             </tr>
                         )
@@ -132,4 +135,4 @@ function CustomTable({data, pageNumber}) {
     )
 }
 
-export default CustomTable;
+export default React.memo(CustomTable);
