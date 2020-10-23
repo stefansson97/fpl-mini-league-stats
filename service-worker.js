@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/fpl-mini-league-stats/precache-manifest.501d2287d079425ab0461deedb426bb8.js"
+  "/fpl-mini-league-stats/precache-manifest.a97251463fb35bcd4f3a75e2c1ff033b.js"
 );
 
 self.addEventListener('message', (event) => {
