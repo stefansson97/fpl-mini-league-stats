@@ -63,6 +63,10 @@ const Styles = styled.div`
     .rank-icon-same {
         color: rgb(148, 150, 140);
     }
+
+    .gw-points-cell {
+        cursor: pointer;
+    }
 `
 
 function CustomTable({data, pageNumber, handlePicks, handleMouseEnter, handleMouseLeave }) {
@@ -124,7 +128,7 @@ function CustomTable({data, pageNumber, handlePicks, handleMouseEnter, handleMou
                                 <td onMouseEnter={() => {
                                     handlePicks(team.picks);
                                     handleMouseEnter();
-                                }} onMouseLeave={handleMouseLeave}>{team.event_total}</td>
+                                }} onMouseLeave={handleMouseLeave} className='gw-points-cell'>{team.event_total}</td>
                                 <td>{team.total}</td>
                             </tr>
                         )

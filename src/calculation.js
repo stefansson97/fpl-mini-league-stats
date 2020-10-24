@@ -130,19 +130,19 @@ async function Calculation(miniLeagueID) {
             while(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF < 3) {
                 //if there are no 3 playing players from defence we must take one/two/three with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
-                    if(realTeamPlayingPositions.DEF === 0) {
+                    if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF === 0) {
                         realTeamPlayingPositions['DEF'] += 3;
                         playCounter += 3;
                         leftToPlay -= 3;
                         didNotPlayFieldPlayers['DEF'] -= 3;
                         break;
-                    } else if(realTeamPlayingPositions.DEF === 1) {
+                    } else if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF === 1) {
                         realTeamPlayingPositions['DEF'] += 2;
                         playCounter += 2;
                         leftToPlay -= 2;
                         didNotPlayFieldPlayers['DEF'] -= 2;
                         break;
-                    } else if(realTeamPlayingPositions.DEF === 2) {
+                    } else if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF === 2) {
                         realTeamPlayingPositions['DEF'] += 1;
                         playCounter += 1;
                         leftToPlay -= 1;
@@ -152,6 +152,8 @@ async function Calculation(miniLeagueID) {
                 }
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
+                let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
+                let hisGameStarted = gameData.hisGameStarted;
                 if(playerTeamActivity.element_type === 'DEF') {
                     if(playerStats.minutes > 0) {
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
@@ -162,6 +164,8 @@ async function Calculation(miniLeagueID) {
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                         j--;
+                    } else if(!hisGameStarted) {
+                        break;
                     }
                 }
                 
@@ -172,13 +176,13 @@ async function Calculation(miniLeagueID) {
             while(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID < 2) {
                 //if there are no 2 playing players from midfield we must take one/two with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
-                    if(realTeamPlayingPositions.MID === 0) {
+                    if(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID === 0) {
                         realTeamPlayingPositions['MID'] += 2;
                         playCounter += 2;
                         leftToPlay -= 2;
                         didNotPlayFieldPlayers['MID'] -= 2;
                         break;
-                    } else if(realTeamPlayingPositions.MID === 1) {
+                    } else if(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID === 1) {
                         realTeamPlayingPositions['MID'] += 1;
                         playCounter += 1;
                         leftToPlay -= 1;
@@ -188,6 +192,8 @@ async function Calculation(miniLeagueID) {
                 }
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
+                let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
+                let hisGameStarted = gameData.hisGameStarted;
                 if(playerTeamActivity.element_type === 'MID') {
                     if(playerStats.minutes > 0) {
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
@@ -198,6 +204,8 @@ async function Calculation(miniLeagueID) {
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                         j--;
+                    } else if(!hisGameStarted) {
+                        break;
                     }
                 }
                 j++;
@@ -207,7 +215,7 @@ async function Calculation(miniLeagueID) {
             while(teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD < 1) {
                 //if there is no 1 playing attacker we must take one with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined) ) {
-                    if(realTeamPlayingPositions.FWD === 0) {
+                    if(teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD === 0) {
                         realTeamPlayingPositions['FWD'] += 1;
                         playCounter += 1;
                         leftToPlay--;
@@ -217,6 +225,8 @@ async function Calculation(miniLeagueID) {
                 }
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
+                let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
+                let hisGameStarted = gameData.hisGameStarted;
                 if(playerTeamActivity.element_type === 'FWD') {
                     if(playerStats.minutes > 0) {    
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
@@ -227,6 +237,8 @@ async function Calculation(miniLeagueID) {
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
                         miniLeagueTeams[i].picks.splice(j, 1);
                         j--;
+                    } else if(!hisGameStarted) {
+                        break;
                     }
                 }
 
@@ -280,6 +292,8 @@ async function Calculation(miniLeagueID) {
                 leftToPlay = 0;
             }
         }
+
+        
 
 
         miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry;        
@@ -500,7 +514,7 @@ async function getBonusPoints(gameweek) {
                     if(homePlayersBps[0].value === homePlayersBps[1].value) {
                         let i;
                         for(i = 0; i < homePlayersBps.length; i++) {
-                            if(homePlayersBps.length === 1) break;
+                            if(homePlayersBps.length === i + 1) break;
                             if(homePlayersBps[i].value !== homePlayersBps[i+1].value) {
                                 break;
                             }
@@ -520,7 +534,7 @@ async function getBonusPoints(gameweek) {
                 } else if(awayPlayersBps[0].value === homePlayersBps[0].value) {
                     let i, j;
                     for(i = 0; i < awayPlayersBps.length; i++) {
-                        if(awayPlayersBps.length === 1) break;
+                        if(awayPlayersBps.length === i + 1) break;
                         if(awayPlayersBps[i].value !== awayPlayersBps[i+1].value) {
                             break;
                         }
@@ -531,7 +545,7 @@ async function getBonusPoints(gameweek) {
                         awayPlayersBps.shift()
                     }
                     for(i = 0; i < homePlayersBps.length; i++) {
-                        if(homePlayersBps.length === 1) break;
+                        if(homePlayersBps.length === i + 1) break;
                         if(homePlayersBps[i].value !== homePlayersBps[i+1].value) {
                             break;
                         }
@@ -546,7 +560,7 @@ async function getBonusPoints(gameweek) {
                     if(awayPlayersBps[0].value === awayPlayersBps[1].value) {
                         let i;
                         for(i = 0; i < awayPlayersBps.length; i++) {
-                            if(awayPlayersBps.length === 1) break;
+                            if(awayPlayersBps.length === i + 1) break;
                             if(awayPlayersBps[i].value !== awayPlayersBps[i+1].value) {
                                 break;
                             }

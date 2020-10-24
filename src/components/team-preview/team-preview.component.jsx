@@ -15,6 +15,7 @@ const Styles = styled.div`
     display: flex;
     flex-flow: column;
     justify-content: space-between;
+    font-weight: 500;
 
     .flex-row {
         display: flex;
@@ -47,7 +48,7 @@ function TeamPreview({ picks }) {
     return(
         <Styles>
             <div className='goalkeeper flex-row center'>
-                <div className='player-stats-and-kit'>
+                <div className='player-stats-and-kit' key={picks[0].element}>
                     <img src={require(`../../images/team-${picks[0].team}-gkp.webp`)} alt='player-kit-img' className='player-kit-img' />
                     <div>{players[picks[0].element - 1].web_name + (picks[0].is_captain ? 'C' : '')}</div>
                 </div>
@@ -56,7 +57,7 @@ function TeamPreview({ picks }) {
                 {picks
                     .filter(player => player.element_type === 'DEF' && player.position < 12)
                     .map(defender => 
-                        <div className='player-stats-and-kit'>
+                        <div className='player-stats-and-kit' key={defender.element}>
                             <img src={require(`../../images/team-${defender.team}.webp`)} alt='player-kit-img' className='player-kit-img' />
                             <div>{players[defender.element - 1].web_name + (defender.is_captain ? '(C)' : '')}</div>
                         </div>)}
@@ -65,7 +66,7 @@ function TeamPreview({ picks }) {
                 {picks
                     .filter(player => player.element_type === 'MID' && player.position < 12)
                     .map(midfielder => 
-                        <div className='player-stats-and-kit'>
+                        <div className='player-stats-and-kit' key={midfielder.element}>
                             <img src={require(`../../images/team-${midfielder.team}.webp`)} alt='player-kit-img' className='player-kit-img' />
                             <div>{players[midfielder.element - 1].web_name + (midfielder.is_captain ? '(C)' : '')}</div>
                         </div>)}
@@ -74,20 +75,20 @@ function TeamPreview({ picks }) {
                 {picks
                     .filter(player => player.element_type === 'FWD' && player.position < 12)
                     .map(forward => 
-                        <div className='player-stats-and-kit'>
+                        <div className='player-stats-and-kit' key={forward.element}>
                             <img src={require(`../../images/team-${forward.team}.webp`)} alt='player-kit-img' className='player-kit-img' />
                             <div>{players[forward.element - 1].web_name + (forward.is_captain ? '(C)' : '')}</div>
                         </div>)}
             </div>
             <div className='subs flex-row space-arnd'>
-                <div className='player-stats-and-kit'>
+                <div className='player-stats-and-kit' key={picks[11].element}>
                     <img src={require(`../../images/team-${picks[11].team}-gkp.webp`)} alt='player-kit-img' className='player-kit-img' />
                     <div>{players[picks[11].element - 1].web_name}</div>
                 </div>
                 {picks
                     .filter(player => player.position >= 13)
                     .map(sub => 
-                        <div className='player-stats-and-kit'>
+                        <div className='player-stats-and-kit' key={sub.element}>
                             <img src={require(`../../images/team-${sub.team}.webp`)} alt='player-kit-img' className='player-kit-img' />
                             <div>{players[sub.element - 1].web_name}</div>
                         </div>)}
