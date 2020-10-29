@@ -82,6 +82,17 @@ const Styles = styled.div`
       transition: all 0.2s ease;
     }
   }
+
+  .gw-team-tip {
+    color: ${(props) => props.theme.darkTheme ? 'white' : '#0e182a'};
+    display: block; 
+  }
+
+  @media only screen and (max-width: 780px) {
+    .gw-team-tip {
+      display: none;
+    }
+  }
   
 `
 
@@ -201,6 +212,7 @@ function App() {
       {isLoadingName || isLoadingData ? <Loading /> : (
         (standingsData && (standingsData.length > 0)) ? (
           <>
+            <h5 className='gw-team-tip'>Hover on each player gameweek points to see their team.</h5>
             <CustomTable data={standingsData} pageNumber={pageNumber} handlePicks={handlePicks} handleMouseEnter={handleMouseEnter} handleMouseLeave={handleMouseLeave} />
             <ResponsiveTable data={standingsData} pageNumber={pageNumber} />
             <TableButtons clickPrevious={handleButtonClickPrevious} clickNext={handleButtonClickNext} pageNumber={pageNumber} totalPages={totalPages}/>
