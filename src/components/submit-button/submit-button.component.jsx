@@ -29,4 +29,4 @@ function SubmitButton({children}) {
     )
 }
 
-export default React.memo(SubmitButton)
+export default SubmitButton;

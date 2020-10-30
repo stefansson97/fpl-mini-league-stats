@@ -61,4 +61,4 @@ function MiniLeagueIDInput({ value, handleChange }) {
     )
 }
 
-export default React.memo(MiniLeagueIDInput);
+export default MiniLeagueIDInput;

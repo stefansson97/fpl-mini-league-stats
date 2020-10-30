@@ -32,7 +32,7 @@ export default function ErrorBox({error}) {
 
     return (
         <Styles>
-            {error.response.data}
+            {typeof error.response.data === 'object' ? error.response.data.detail : error.response.data}
         </Styles>
     )
 }

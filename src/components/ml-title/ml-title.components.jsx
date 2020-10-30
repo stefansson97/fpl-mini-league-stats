@@ -28,4 +28,4 @@ function MiniLeagueTitle({ miniLeagueName }) {
     )
 }
 
-export default React.memo(MiniLeagueTitle);
+export default MiniLeagueTitle;
