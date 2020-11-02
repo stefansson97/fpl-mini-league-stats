@@ -251,7 +251,7 @@ async function Calculation(miniLeagueID) {
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
                 if(playerStats.minutes <= 0) continue;
                 if(didNotPlayFieldPlayers.DEF === 0 && didNotPlayFieldPlayers.MID === 0 && didNotPlayFieldPlayers.FWD === 0) break;
-                if(realTeamPlayingPositions.DEF >= 3 && realTeamPlayingPositions.MID >= 2 && realTeamPlayingPositions.FWD >=1) {
+                if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF >= 3 && teamPlayingPositions.MID - didNotPlayFieldPlayers.MID >= 2 && teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD >=1) {
                     minimumPlayingPositions = true;
                 }
                 if(minimumPlayingPositions) {
@@ -260,7 +260,13 @@ async function Calculation(miniLeagueID) {
                     realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                     playCounter++;
                     leftToPlay--;
-                    didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
+					if(didNotPlayFieldPlayers.DEF > 0) {
+						didNotPlayFieldPlayers.DEF -= 1;
+					} else if(didNotPlayFieldPlayers.MID > 0) {
+						didNotPlayFieldPlayers.MID -= 1;
+					} else if(didNotPlayFieldPlayers.FWD > 0) {
+						didNotPlayFieldPlayers.FWD -= 1;
+					}
                     continue;
                 }
                 
