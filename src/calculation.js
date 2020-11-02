@@ -23,12 +23,6 @@ async function Calculation(miniLeagueID) {
     let miniLeagueTeamsDataArray = [];
     for(let i = 0; i < miniLeagueTeams.length; i++) {
         let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
-        let realTeamPlayingPositions = {
-            'GKP': 0,
-            'DEF': 0,
-            'MID': 0,
-            'FWD': 0
-        };
         let didNotPlayFieldPlayers = {
             'GKP': 0,
             'DEF': 0,
@@ -100,7 +94,6 @@ async function Calculation(miniLeagueID) {
             if(playerStats.minutes > 0 ) {
                 let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                 pointsSum += (playerStats.total_points + potentialBonus);
-                realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                 playCounter++;
                 leftToPlay--;
                 continue;
@@ -120,7 +113,6 @@ async function Calculation(miniLeagueID) {
                 let playerTeamActivity = miniLeagueTeams[i].picks[11];
                 let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                 pointsSum += (playerStats.total_points + potentialBonus);
-                realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                 didNotPlayFieldPlayers['GKP'] -= 1;
                 playCounter++;
                 leftToPlay--;
@@ -131,19 +123,16 @@ async function Calculation(miniLeagueID) {
                 //if there are no 3 playing players from defence we must take one/two/three with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
                     if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF === 0) {
-                        realTeamPlayingPositions['DEF'] += 3;
                         playCounter += 3;
                         leftToPlay -= 3;
                         didNotPlayFieldPlayers['DEF'] -= 3;
                         break;
                     } else if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF === 1) {
-                        realTeamPlayingPositions['DEF'] += 2;
                         playCounter += 2;
                         leftToPlay -= 2;
                         didNotPlayFieldPlayers['DEF'] -= 2;
                         break;
                     } else if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF === 2) {
-                        realTeamPlayingPositions['DEF'] += 1;
                         playCounter += 1;
                         leftToPlay -= 1;
                         didNotPlayFieldPlayers['DEF'] -= 1;
@@ -158,7 +147,6 @@ async function Calculation(miniLeagueID) {
                     if(playerStats.minutes > 0) {
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                         pointsSum += (playerStats.total_points + potentialBonus);
-                        realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         leftToPlay--;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
@@ -177,13 +165,11 @@ async function Calculation(miniLeagueID) {
                 //if there are no 2 playing players from midfield we must take one/two with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined)) {
                     if(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID === 0) {
-                        realTeamPlayingPositions['MID'] += 2;
                         playCounter += 2;
                         leftToPlay -= 2;
                         didNotPlayFieldPlayers['MID'] -= 2;
                         break;
                     } else if(teamPlayingPositions.MID - didNotPlayFieldPlayers.MID === 1) {
-                        realTeamPlayingPositions['MID'] += 1;
                         playCounter += 1;
                         leftToPlay -= 1;
                         didNotPlayFieldPlayers['MID'] -= 1;
@@ -198,7 +184,6 @@ async function Calculation(miniLeagueID) {
                     if(playerStats.minutes > 0) {
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                         pointsSum += (playerStats.total_points + potentialBonus);
-                        realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         leftToPlay--;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
@@ -216,7 +201,6 @@ async function Calculation(miniLeagueID) {
                 //if there is no 1 playing attacker we must take one with 0 minutes
                 if(j === 15 || (miniLeagueTeams[i].picks[j] === undefined) ) {
                     if(teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD === 0) {
-                        realTeamPlayingPositions['FWD'] += 1;
                         playCounter += 1;
                         leftToPlay--;
                         didNotPlayFieldPlayers['FWD'] -= 1;
@@ -231,7 +215,6 @@ async function Calculation(miniLeagueID) {
                     if(playerStats.minutes > 0) {    
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                         pointsSum += (playerStats.total_points + potentialBonus);
-                        realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                         playCounter++;
                         leftToPlay--;
                         didNotPlayFieldPlayers[playerTeamActivity.element_type] -= 1;
@@ -257,7 +240,6 @@ async function Calculation(miniLeagueID) {
                 if(minimumPlayingPositions) {
                     let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                     pointsSum += (playerStats.total_points + potentialBonus);
-                    realTeamPlayingPositions[playerTeamActivity.element_type] += 1;
                     playCounter++;
                     leftToPlay--;
 					if(didNotPlayFieldPlayers.DEF > 0) {
