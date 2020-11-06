@@ -293,7 +293,7 @@ async function Calculation(miniLeagueID) {
         miniLeagueTeamsPoints['left_to_play'] = leftToPlay;
         miniLeagueTeamsPoints['last_rank'] = miniLeagueTeams[i].last_rank;
         miniLeagueTeamsPoints['picks'] = miniLeagueTeams[i].picks;
-
+        
         //if the fpl api is not updated the first time this gameweek, we are working with data from the last gameweek
         if(dateForGameweekPickAndAPIUpdate < firstAPIUpdate) {
             miniLeagueTeamsPoints['total'] = pointsSum + miniLeagueTeams[i].total_points;
@@ -439,7 +439,7 @@ async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
         let picks = getPlayersType(response.data.picks);
         return ({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.entry_history.event_transfers_cost,  ...teamID})
     }));
-
+    
     return miniLeagueTeams;
 }
 
