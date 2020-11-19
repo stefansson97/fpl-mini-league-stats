@@ -29,10 +29,10 @@ const Styles = styled.div`
 
 
 export default function ErrorBox({error}) {
-
+    
     return (
         <Styles>
-            {typeof error.response.data === 'object' ? error.response.data.detail : error.response.data}
+            {error.message ? error.message : typeof error.response.data === 'object' ? error.response.data.detail : error.response.data }
         </Styles>
     )
 }

@@ -4,23 +4,16 @@ import { fixtures, gameweekDates } from './fixtures';
 
 async function Calculation(miniLeagueID) {
 
-    let gameweekData = getGameweekNumberAndFirstAPIUpdate();
-    let gameweek = gameweekData.gameweek;
-    let firstAPIUpdate = gameweekData.firstAPIUpdate
-    let gameweekFixtures = gameweekData.gameweekFixtures;
+    let [gameweek, firstAPIUpdate, gameweekFixtures] = getGameweekNumberAndFirstAPIUpdate();
 
-    let bonusArray = await getBonusPoints(gameweek);
+    let [bonusArray, playerPointsData, miniLeagueTeams] = await Promise.all([
+        getBonusPoints(gameweek),
+        axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`),
+        getMiniLeagueTeamsAndName(miniLeagueID, gameweek)
+    ])
 
-    let miniLeagueTeams = [];
-    try {
-        miniLeagueTeams = await getMiniLeagueTeamsAndName(miniLeagueID, gameweek);
-    } catch(e) {
-        return { teams: [], error: e };
-    }
-
-    let playerPointsData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`);
-    
     let miniLeagueTeamsDataArray = [];
+    
     for(let i = 0; i < miniLeagueTeams.length; i++) {
         let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
         let didNotPlayFieldPlayers = {
@@ -54,9 +47,7 @@ async function Calculation(miniLeagueID) {
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
             let playerTeamActivity = miniLeagueTeams[i].picks[j];
             
-            let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
-            let hisGameStarted = gameData.hisGameStarted;
-            let hisGameEnded = gameData.hisGameEnded;
+            let [hisGameStarted, hisGameEnded] = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
             
             if(playerTeamActivity.is_captain) {
                 captainName = players[playerTeamActivity.element - 1].web_name;
@@ -267,7 +258,6 @@ async function Calculation(miniLeagueID) {
         // let numOfTransfers = await getNumberOfTransfers(miniLeagueTeams[i].entry);
         //it drasticly slows down the algorithm
 
-
         if(activeChip !== 'bboost') {
             //this is the number of players that did not play and can't be substituted
             let zeroPointPlayers = didNotPlayFieldPlayers['GKP'] + didNotPlayFieldPlayers['DEF'] + didNotPlayFieldPlayers['MID'] + didNotPlayFieldPlayers['FWD'];
@@ -280,9 +270,6 @@ async function Calculation(miniLeagueID) {
                 leftToPlay = 0;
             }
         }
-
-        
-
 
         miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry;        
         miniLeagueTeamsPoints['event_total'] = pointsSum;
@@ -375,7 +362,7 @@ export function getGameweekNumberAndFirstAPIUpdate() {
         }
     }
     let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10); 
-    return {gameweek, firstAPIUpdate, gameweekFixtures}
+    return [gameweek, firstAPIUpdate, gameweekFixtures]
 }
 
 function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activeChip, captainPoints, viceCaptainPoints, captainDidNotEnter, captainName) {
@@ -463,7 +450,7 @@ function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {
             break;
         }
     }
-    return {hisGameStarted, hisGameEnded};
+    return [hisGameStarted, hisGameEnded];
 }
 
 async function getBonusPoints(gameweek) {
