@@ -361,7 +361,8 @@ export function getGameweekNumberAndFirstAPIUpdate() {
             break;
         }
     }
-    let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10); 
+    let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10);
+    
     return [gameweek, firstAPIUpdate, gameweekFixtures]
 }
 
@@ -378,15 +379,14 @@ function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activ
 }
 
 export async function getMiniLeagueName(miniLeagueID) {
-    let response = {};
+    
     try {
-        response = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+        let response = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+        return response.data.league.name;
     } catch (error) {
         error.message = 'Wrong mini-league ID. Please try again'
         throw error;
     }
-    
-    return response.data.league.name;
 }
 
 async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {

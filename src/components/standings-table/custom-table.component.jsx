@@ -78,7 +78,7 @@ function CustomTable({data, pageNumber, handlePicks, handleMouseEnter, handleMou
           darkTheme: darkTheme  }
     }
 
-    const { gameweek } = getGameweekNumberAndFirstAPIUpdate();
+    const  [gameweek]  = getGameweekNumberAndFirstAPIUpdate();
 
     return(
         <Styles>

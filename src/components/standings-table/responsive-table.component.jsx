@@ -81,7 +81,7 @@ function ResponsiveTable({data, pageNumber}) {
           darkTheme: darkTheme  }
     }
 
-    const { gameweek } = getGameweekNumberAndFirstAPIUpdate();
+    const [ gameweek ] = getGameweekNumberAndFirstAPIUpdate();
 
     return (
         <Styles>
