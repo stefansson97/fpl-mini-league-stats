@@ -8,14 +8,13 @@ async function Calculation(miniLeagueID) {
 
     let [bonusArray, playerPointsData, miniLeagueTeams] = await Promise.all([
         getBonusPoints(gameweek),
-        axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`),
+        getPlayerPointsData(gameweek),
         getMiniLeagueTeamsAndName(miniLeagueID, gameweek)
     ])
 
     let miniLeagueTeamsDataArray = [];
     
     for(let i = 0; i < miniLeagueTeams.length; i++) {
-        let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
         let didNotPlayFieldPlayers = {
             'GKP': 0,
             'DEF': 0,
@@ -31,7 +30,6 @@ async function Calculation(miniLeagueID) {
         let activeChip = miniLeagueTeams[i].active_chip;
         let playCounter = 0;
         let leftToPlay = activeChip === 'bboost' ? 15 : 11;
-        let minimumPlayingPositions = false;
         let didFirstGKPlayed = true;
         let captainPoints = 0;
         let captainName = '';
@@ -41,7 +39,6 @@ async function Calculation(miniLeagueID) {
         let didCaptainPlay = false;
         let didViceCaptainPlay = false;
         let pointsSum = 0;
-        let miniLeagueTeamsPoints = {};
         let dateNow = new Date();
         for(let j = 0; j < (activeChip === 'bboost' ? 15 : 11); j++) {
             let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
@@ -97,7 +94,7 @@ async function Calculation(miniLeagueID) {
         }
         //checking if the first goalkeeper played. if not we are adding reserve goalkeeper points
         if(activeChip !== 'bboost' && playCounter !== 11) {
-
+            
             if(!didFirstGKPlayed) {
                 //12th element in picks array is the reserve goalkeeper
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[11].element - 1].stats;
@@ -109,6 +106,7 @@ async function Calculation(miniLeagueID) {
                 leftToPlay--;
             }
             //if we have less than 3 playing players in defence we must pick one from the bench
+            let teamPlayingPositions = teamAnalyze(miniLeagueTeams[i].picks);
             let j = 12;
             while(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF < 3) {
                 //if there are no 3 playing players from defence we must take one/two/three with 0 minutes
@@ -132,8 +130,7 @@ async function Calculation(miniLeagueID) {
                 }
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
-                let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
-                let hisGameStarted = gameData.hisGameStarted;
+                let [hisGameStarted] = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
                 if(playerTeamActivity.element_type === 'DEF') {
                     if(playerStats.minutes > 0) {
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
@@ -169,8 +166,7 @@ async function Calculation(miniLeagueID) {
                 }
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
-                let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
-                let hisGameStarted = gameData.hisGameStarted;
+                let [hisGameStarted] = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
                 if(playerTeamActivity.element_type === 'MID') {
                     if(playerStats.minutes > 0) {
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
@@ -200,8 +196,7 @@ async function Calculation(miniLeagueID) {
                 }
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
-                let gameData = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
-                let hisGameStarted = gameData.hisGameStarted;
+                let [hisGameStarted] = checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow);
                 if(playerTeamActivity.element_type === 'FWD') {
                     if(playerStats.minutes > 0) {    
                         let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
@@ -220,14 +215,21 @@ async function Calculation(miniLeagueID) {
             }
             //looping our 3 field subs
             for(let j = 12; j < miniLeagueTeams[i].picks.length; j++) {
+
                 if(playCounter === 11) break;
+                
                 let playerStats = playerPointsData.data.elements[miniLeagueTeams[i].picks[j].element - 1].stats;
                 let playerTeamActivity = miniLeagueTeams[i].picks[j];
+                let minimumPlayingPositions = false;
+                
                 if(playerStats.minutes <= 0) continue;
+                
                 if(didNotPlayFieldPlayers.DEF === 0 && didNotPlayFieldPlayers.MID === 0 && didNotPlayFieldPlayers.FWD === 0) break;
+                
                 if(teamPlayingPositions.DEF - didNotPlayFieldPlayers.DEF >= 3 && teamPlayingPositions.MID - didNotPlayFieldPlayers.MID >= 2 && teamPlayingPositions.FWD - didNotPlayFieldPlayers.FWD >=1) {
                     minimumPlayingPositions = true;
                 }
+                
                 if(minimumPlayingPositions) {
                     let potentialBonus = checkIfHeGotBonus(bonusArray, playerTeamActivity.element);
                     pointsSum += (playerStats.total_points + potentialBonus);
@@ -270,6 +272,8 @@ async function Calculation(miniLeagueID) {
                 leftToPlay = 0;
             }
         }
+
+        let miniLeagueTeamsPoints = {};
 
         miniLeagueTeamsPoints['entry'] = miniLeagueTeams[i].entry;        
         miniLeagueTeamsPoints['event_total'] = pointsSum;
@@ -334,6 +338,10 @@ function getPlayersType(picks) {
     }
 
     return updatedPicks;
+}
+
+async function getPlayerPointsData(gameweek) {
+    return await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`)
 }
 
 function teamAnalyze(picks) {
