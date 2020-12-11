@@ -15,6 +15,7 @@ const Styles = styled.div`
     .team-and-manager {
         display: flex;
         flex-flow: column;
+        word-break: break-word;
     }
 
 
@@ -30,6 +31,7 @@ const Styles = styled.div`
         background-color: ${props => props.theme.darkTheme ? '#0e182a' : 'white'};
         border: 1px solid ${props => props.theme.darkTheme ? '#222f44' : '#ddd'};
         color: ${props => props.theme.darkTheme ? 'white' : '#0e182a'};
+        word-break: break-word;
     }
 
     td {
@@ -69,8 +71,6 @@ const Styles = styled.div`
         margin-left: 3px;
     }
 `
-
-
 
 function ResponsiveTable({data, pageNumber}) {
 

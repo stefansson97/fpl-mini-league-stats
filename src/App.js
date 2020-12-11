@@ -41,6 +41,7 @@ const Styles = styled.div`
     flex-flow: column;
     justify-content: center;
     align-items: center;
+    transition: all 0.3s ease;
   }
 
   .mini-league-title {
@@ -91,6 +92,13 @@ const Styles = styled.div`
   @media only screen and (max-width: 780px) {
     .gw-team-tip {
       display: none;
+    }
+  }
+
+  @media only screen and (max-width: 370px) {
+    form {
+      width: 150px;
+      transition: all 0.3s ease;
     }
   }
   
