@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/fpl-mini-league-stats/static/css/main.34a1f70c.chunk.css",
-    "main.js": "/fpl-mini-league-stats/static/js/main.3edb4def.chunk.js",
-    "main.js.map": "/fpl-mini-league-stats/static/js/main.3edb4def.chunk.js.map",
+    "main.js": "/fpl-mini-league-stats/static/js/main.4033f981.chunk.js",
+    "main.js.map": "/fpl-mini-league-stats/static/js/main.4033f981.chunk.js.map",
     "runtime-main.js": "/fpl-mini-league-stats/static/js/runtime-main.fbc2631f.js",
     "runtime-main.js.map": "/fpl-mini-league-stats/static/js/runtime-main.fbc2631f.js.map",
     "static/js/2.5461ec55.chunk.js": "/fpl-mini-league-stats/static/js/2.5461ec55.chunk.js",
     "static/js/2.5461ec55.chunk.js.map": "/fpl-mini-league-stats/static/js/2.5461ec55.chunk.js.map",
     "index.html": "/fpl-mini-league-stats/index.html",
-    "precache-manifest.6b8e6c9b387144b21e6778ae25b83ec9.js": "/fpl-mini-league-stats/precache-manifest.6b8e6c9b387144b21e6778ae25b83ec9.js",
+    "precache-manifest.cddc849692e3610632f215e8791cb430.js": "/fpl-mini-league-stats/precache-manifest.cddc849692e3610632f215e8791cb430.js",
     "service-worker.js": "/fpl-mini-league-stats/service-worker.js",
     "static/css/main.34a1f70c.chunk.css.map": "/fpl-mini-league-stats/static/css/main.34a1f70c.chunk.css.map",
     "static/js/2.5461ec55.chunk.js.LICENSE.txt": "/fpl-mini-league-stats/static/js/2.5461ec55.chunk.js.LICENSE.txt",
@@ -57,6 +57,6 @@
     "static/js/runtime-main.fbc2631f.js",
     "static/js/2.5461ec55.chunk.js",
     "static/css/main.34a1f70c.chunk.css",
-    "static/js/main.3edb4def.chunk.js"
+    "static/js/main.4033f981.chunk.js"
   ]
 }
