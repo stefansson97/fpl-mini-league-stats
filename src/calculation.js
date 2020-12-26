@@ -4,9 +4,9 @@ import { fixtures, gameweekDates } from './fixtures';
 
 async function Calculation(miniLeagueID) {
 
-    let [gameweek, firstAPIUpdate, gameweekFixtures] = getGameweekNumberAndFirstAPIUpdate();
+    const [gameweek, firstAPIUpdate, gameweekFixtures] = getGameweekNumberAndFirstAPIUpdate();
 
-    let [bonusArray, playerPointsData, miniLeagueTeams] = await Promise.all([
+    const [bonusArray, playerPointsData, miniLeagueTeams] = await Promise.all([
         getBonusPoints(gameweek),
         getPlayerPointsData(gameweek),
         getMiniLeagueTeamsAndName(miniLeagueID, gameweek)
