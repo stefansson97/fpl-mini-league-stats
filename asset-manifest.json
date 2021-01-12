@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/fpl-mini-league-stats/static/css/main.34a1f70c.chunk.css",
-    "main.js": "/fpl-mini-league-stats/static/js/main.4033f981.chunk.js",
-    "main.js.map": "/fpl-mini-league-stats/static/js/main.4033f981.chunk.js.map",
+    "main.js": "/fpl-mini-league-stats/static/js/main.d3938baa.chunk.js",
+    "main.js.map": "/fpl-mini-league-stats/static/js/main.d3938baa.chunk.js.map",
     "runtime-main.js": "/fpl-mini-league-stats/static/js/runtime-main.fbc2631f.js",
     "runtime-main.js.map": "/fpl-mini-league-stats/static/js/runtime-main.fbc2631f.js.map",
-    "static/js/2.5461ec55.chunk.js": "/fpl-mini-league-stats/static/js/2.5461ec55.chunk.js",
-    "static/js/2.5461ec55.chunk.js.map": "/fpl-mini-league-stats/static/js/2.5461ec55.chunk.js.map",
+    "static/js/2.b3c65c63.chunk.js": "/fpl-mini-league-stats/static/js/2.b3c65c63.chunk.js",
+    "static/js/2.b3c65c63.chunk.js.map": "/fpl-mini-league-stats/static/js/2.b3c65c63.chunk.js.map",
     "index.html": "/fpl-mini-league-stats/index.html",
-    "precache-manifest.cddc849692e3610632f215e8791cb430.js": "/fpl-mini-league-stats/precache-manifest.cddc849692e3610632f215e8791cb430.js",
+    "precache-manifest.8359e4f46a40413a0e8f5262c8af9bce.js": "/fpl-mini-league-stats/precache-manifest.8359e4f46a40413a0e8f5262c8af9bce.js",
     "service-worker.js": "/fpl-mini-league-stats/service-worker.js",
     "static/css/main.34a1f70c.chunk.css.map": "/fpl-mini-league-stats/static/css/main.34a1f70c.chunk.css.map",
-    "static/js/2.5461ec55.chunk.js.LICENSE.txt": "/fpl-mini-league-stats/static/js/2.5461ec55.chunk.js.LICENSE.txt",
+    "static/js/2.b3c65c63.chunk.js.LICENSE.txt": "/fpl-mini-league-stats/static/js/2.b3c65c63.chunk.js.LICENSE.txt",
     "static/media/team-1-gkp.webp": "/fpl-mini-league-stats/static/media/team-1-gkp.b6ea10f1.webp",
     "static/media/team-1.webp": "/fpl-mini-league-stats/static/media/team-1.9f82c063.webp",
     "static/media/team-10-gkp.webp": "/fpl-mini-league-stats/static/media/team-10-gkp.74efa149.webp",
@@ -55,8 +55,8 @@
   },
   "entrypoints": [
     "static/js/runtime-main.fbc2631f.js",
-    "static/js/2.5461ec55.chunk.js",
+    "static/js/2.b3c65c63.chunk.js",
     "static/css/main.34a1f70c.chunk.css",
-    "static/js/main.4033f981.chunk.js"
+    "static/js/main.d3938baa.chunk.js"
   ]
 }
