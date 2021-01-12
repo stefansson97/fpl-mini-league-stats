@@ -2,6 +2,8 @@ import axios from 'axios';
 import { players } from './players';
 import { fixtures, gameweekDates } from './fixtures';
 
+const corsUrl = 'https://ineedthisforfplproject.herokuapp.com/';
+
 async function Calculation(miniLeagueID) {
 
     const [gameweek, firstAPIUpdate, gameweekFixtures] = getGameweekNumberAndFirstAPIUpdate();
@@ -341,7 +343,7 @@ function getPlayersType(picks) {
 }
 
 async function getPlayerPointsData(gameweek) {
-    return await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/event/${gameweek}/live/`)
+    return await axios.get(`${corsUrl}https://fantasy.premierleague.com/api/event/${gameweek}/live/`)
 }
 
 function teamAnalyze(picks) {
@@ -369,7 +371,7 @@ export function getGameweekNumberAndFirstAPIUpdate() {
             break;
         }
     }
-    let gameweekFixtures = fixtures.slice(gameweek * 10 - 10, gameweek * 10);
+    let gameweekFixtures = fixtures.filter(fixture => fixture.event === gameweek);
     
     return [gameweek, firstAPIUpdate, gameweekFixtures]
 }
@@ -389,7 +391,7 @@ function addCaptainOrViceCaptainPoints(didCaptainPlay, didViceCaptainPlay, activ
 export async function getMiniLeagueName(miniLeagueID) {
     
     try {
-        let response = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+        let response = await axios.get(`${corsUrl}https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
         return response.data.league.name;
     } catch (error) {
         error.message = 'Wrong mini-league ID. Please try again'
@@ -399,13 +401,13 @@ export async function getMiniLeagueName(miniLeagueID) {
 
 async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
     
-    let miniLeagueData = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
+    let miniLeagueData = await axios.get(`${corsUrl}https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
 
     //if there are more than 50 teams
     let next_page = 2;
     let has_next = miniLeagueData.data.standings.has_next;
     while(has_next && next_page < 11) {
-        let newTeams = await axios.get(`https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/?page_standings=${next_page}`)
+        let newTeams = await axios.get(`${corsUrl}https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/?page_standings=${next_page}`)
         has_next = newTeams.data.standings.has_next;
         miniLeagueData.data.standings.results.push(...newTeams.data.standings.results);
         next_page++;
@@ -429,7 +431,7 @@ async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
 async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
 
     let miniLeagueTeams = Promise.all(miniLeaguePlayersData.map(async teamID => {
-        const url = `https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/entry/${teamID.entry}/event/${gameweek}/picks/`
+        const url = `${corsUrl}https://fantasy.premierleague.com/api/entry/${teamID.entry}/event/${gameweek}/picks/`
         let response = await axios.get(url);
         let picks = getPlayersType(response.data.picks);
         return ({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.entry_history.event_transfers_cost,  ...teamID})
@@ -441,7 +443,7 @@ async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
 function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {
     let hisGameStarted = true;
     let hisGameEnded = false;
-    for(let g = 0; g < 10; g++) {
+    for(let g = 0; g < gameweekFixtures.length; g++) {
         if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
             let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
             //checking if his game started
@@ -462,7 +464,7 @@ function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {
 }
 
 async function getBonusPoints(gameweek) {
-    let allFixtures = await axios.get('https://ineedthisforfplproject.herokuapp.com/https://fantasy.premierleague.com/api/fixtures/');
+    let allFixtures = await axios.get(`${corsUrl}https://fantasy.premierleague.com/api/fixtures/`);
     let thisGameweekFixtures = allFixtures.data.slice(gameweek * 10 - 10, gameweek * 10);
     let dateNow = new Date();
     let dayNow = dateNow.getDate();
