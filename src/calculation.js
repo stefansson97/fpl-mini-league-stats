@@ -1,17 +1,17 @@
 import axios from 'axios';
-import { players } from './players';
-import { fixtures, gameweekDates } from './fixtures';
 
 const corsUrl = 'https://ineedthisforfplproject.herokuapp.com/';
 
 async function Calculation(miniLeagueID) {
 
-    const [gameweek, firstAPIUpdate, gameweekFixtures] = getGameweekNumberAndFirstAPIUpdate();
+    const [gameweek, firstAPIUpdate, gameweekFixtures] = await getGameweekNumberAndFirstAPIUpdate();
+
+    const players = await getPlayersData()
 
     const [bonusArray, playerPointsData, miniLeagueTeams] = await Promise.all([
         getBonusPoints(gameweek),
         getPlayerPointsData(gameweek),
-        getMiniLeagueTeamsAndName(miniLeagueID, gameweek)
+        getMiniLeagueTeamsAndName(miniLeagueID, gameweek, players),
     ])
 
     let miniLeagueTeamsDataArray = [];
@@ -250,10 +250,10 @@ async function Calculation(miniLeagueID) {
             } 
         }
         
-        //if the fpl api is not updated the first time in this gameweek, we need to manually deduct potential transfer minus points
+        //if the FPL API is not updated the first time in this gameweek, we need to manually deduct potential transfer minus points
         //from the player's overall score
         //after the first update, those points are deducted from the overall score by the API
-        let dateForGameweekPickAndAPIUpdate = new Date();
+        const dateForGameweekPickAndAPIUpdate = new Date().toISOString();
         if((dateForGameweekPickAndAPIUpdate < firstAPIUpdate) && miniLeagueTeams[i].event_transfers_cost) {
             pointsSum -= miniLeagueTeams[i].event_transfers_cost
         }
@@ -321,7 +321,13 @@ async function Calculation(miniLeagueID) {
 //     return responseTransfers.data.filter(transfer => transfer.event !== gameweekHePlayedWC && transfer.event !== gameweekHePlayedFH ).length;
 // }
 
-function getPlayersType(picks) {
+export async function getPlayersData() {
+    const response = await axios.get(corsUrl + 'https://fantasy.premierleague.com/api/bootstrap-static/')
+    const players = response.data.elements.sort((a, b) => a.id > b.id ? 1 : -1)
+    return players
+}
+
+function getPlayersType(picks, players) {
     let updatedPicks = picks;
     for(let i = 0; i < picks.length; i++) {
         let type = players[(picks[i].element - 1)].element_type;
@@ -359,18 +365,37 @@ function teamAnalyze(picks) {
     return playerPositions;
 }
 
-export function getGameweekNumberAndFirstAPIUpdate() {
+export async function getGameweekNumberAndFirstAPIUpdate() {
+
+    const res = await axios.get(corsUrl + 'https://fantasy.premierleague.com/api/bootstrap-static/')
+    const events = res.data.events;
+
+    function pad(number) {
+        if (number < 10) {
+          return '0' + number;
+        }
+        return number;
+    }
+
     let gameweek = 0;
     let firstAPIUpdate = new Date();
-    let dateForGameweekPickAndAPIUpdate = new Date();
-    for(let i = gameweekDates.length - 1; i >= 0; i--) {
-        let gameweekDate = new Date(gameweekDates[i].deadlineDate)
+    const dateForGameweekPickAndAPIUpdate = new Date().toISOString();
+    for(let i = events.length - 1; i >= 0; i--) {
+        const gameweekDate = new Date(events[i].deadline_time).toISOString()
         if(dateForGameweekPickAndAPIUpdate > gameweekDate) {
-            gameweek = gameweekDates[i].gameweekNo;
-            firstAPIUpdate = new Date(gameweekDates[i].firstGameweekAPIUpdate)
+            gameweek = events[i].id;
+            const gwDate = new Date(events[i].deadline_time) 
+            firstAPIUpdate = new Date(
+                gwDate.getUTCFullYear() +
+                '-' + pad(gwDate.getUTCMonth() + 1) +
+                '-' + pad(gwDate.getUTCDate() + 1) +
+               'T01:00:00Z'
+            ).toISOString()
             break;
         }
     }
+
+    const { data: fixtures } = await axios.get(corsUrl + 'https://fantasy.premierleague.com/api/fixtures/') 
     let gameweekFixtures = fixtures.filter(fixture => fixture.event === gameweek);
     
     return [gameweek, firstAPIUpdate, gameweekFixtures]
@@ -399,7 +424,7 @@ export async function getMiniLeagueName(miniLeagueID) {
     }
 }
 
-async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
+async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek, players) {
     
     let miniLeagueData = await axios.get(`${corsUrl}https://fantasy.premierleague.com/api/leagues-classic/${miniLeagueID}/standings/`);
 
@@ -423,17 +448,17 @@ async function getMiniLeagueTeamsAndName(miniLeagueID, gameweek) {
 
     let miniLeaguePlayersData = miniLeagueData.data.standings.results.map(team => ({'event_total': team.event_total, 'total_points': team.total, 'entry': team.entry, 'player_name': team.player_name, 'entry_name': team.entry_name, 'last_rank': team.last_rank}));
     
-    let miniLeagueTeams = await getEachPlayerInfo(miniLeaguePlayersData, gameweek)
+    let miniLeagueTeams = await getEachPlayerInfo(miniLeaguePlayersData, gameweek, players)
     
     return miniLeagueTeams;
 }
 
-async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
+async function getEachPlayerInfo(miniLeaguePlayersData, gameweek, players) {
 
     let miniLeagueTeams = Promise.all(miniLeaguePlayersData.map(async teamID => {
         const url = `${corsUrl}https://fantasy.premierleague.com/api/entry/${teamID.entry}/event/${gameweek}/picks/`
         let response = await axios.get(url);
-        let picks = getPlayersType(response.data.picks);
+        let picks = getPlayersType(response.data.picks, players);
         return ({'picks': picks, 'active_chip': response.data.active_chip, 'event_transfers_cost': response.data.entry_history.event_transfers_cost,  ...teamID})
     }));
     
@@ -441,23 +466,56 @@ async function getEachPlayerInfo(miniLeaguePlayersData, gameweek) {
 }
 
 function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {
+
+    //check if this player has more than one game this gameweek
+    let numberOfGames = 0;
+    for(let i = 0; i < gameweekFixtures.length; i++) {
+        if(playerTeamActivity.team === gameweekFixtures[i].team_a || playerTeamActivity.team === gameweekFixtures[i].team_h) {
+            numberOfGames++;
+        }
+    }
+    
     let hisGameStarted = true;
     let hisGameEnded = false;
-    for(let g = 0; g < gameweekFixtures.length; g++) {
-        if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
-            let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
-            //checking if his game started
-            if (dateNow < kickoffDate) {
-                hisGameStarted = false;
+
+    if(numberOfGames <= 1) {
+        for(let g = 0; g < gameweekFixtures.length; g++) {
+            if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
+                let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
+                //checking if his game started
+                if (dateNow < kickoffDate) {
+                    hisGameStarted = false;
+                }
+                //checking if his game ended
+                kickoffDate.setHours(kickoffDate.getHours() + 2);
+                if(dateNow > kickoffDate) {
+                    hisGameEnded = true;
+                }
                 break;
             }
-            //checking if his game ended
-            kickoffDate.setHours(kickoffDate.getHours() + 2);
-            if(dateNow > kickoffDate) {
-                hisGameEnded = true;
+        }
+    } else {
+        //checking if first game started
+        for(let g = 0; g < gameweekFixtures.length; g++) {
+            if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
+                let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
+                //checking if first game started
+                if (dateNow < kickoffDate) {
+                    hisGameStarted = false;
+                }
                 break;
             }
-            break;
+        }
+        //checking if last game ended
+        for(let g = gameweekFixtures.length - 1; g >= 0 ; g--) {
+            if(playerTeamActivity.team === gameweekFixtures[g].team_a || playerTeamActivity.team === gameweekFixtures[g].team_h) {
+                let kickoffDate = new Date(gameweekFixtures[g].kickoff_time);
+                kickoffDate.setHours(kickoffDate.getHours() + 2);
+                if(dateNow > kickoffDate) {
+                    hisGameEnded = true;
+                }
+                break;
+            }
         }
     }
     return [hisGameStarted, hisGameEnded];

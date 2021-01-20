@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ThemeContext } from '../../ThemeProvider';
 import { getGameweekNumberAndFirstAPIUpdate } from '../../calculation';
@@ -71,14 +71,25 @@ const Styles = styled.div`
 
 function CustomTable({data, pageNumber, handlePicks, handleMouseEnter, handleMouseLeave }) {
 
+    const [gameweek, setGameweek] = useState('')
+
+    useEffect(() => {
+
+        async function getGameweekNumber() {
+            const [ gameweek ] = await getGameweekNumberAndFirstAPIUpdate()
+            setGameweek(gameweek)
+        }
+
+        getGameweekNumber()
+        
+    }, [])
+
     const { darkTheme } = useContext(ThemeContext)
     
     Styles.defaultProps = {
         theme: {
           darkTheme: darkTheme  }
     }
-
-    const  [gameweek]  = getGameweekNumberAndFirstAPIUpdate();
 
     return(
         <Styles>

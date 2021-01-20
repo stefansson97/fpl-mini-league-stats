@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { ThemeContext } from '../../ThemeProvider';
 import { getGameweekNumberAndFirstAPIUpdate } from '../../calculation';
@@ -76,12 +76,23 @@ function ResponsiveTable({data, pageNumber}) {
 
     const { darkTheme } = useContext(ThemeContext);
 
+    const [gameweek, setGameweek] = useState('')
+
+    useEffect(() => {
+
+        async function getGameweekNumber() {
+            const [ gameweek ] = await getGameweekNumberAndFirstAPIUpdate()
+            setGameweek(gameweek)
+        }
+
+        getGameweekNumber()
+    
+    }, [])
+
     Styles.defaultProps = {
         theme: {
           darkTheme: darkTheme  }
     }
-
-    const [ gameweek ] = getGameweekNumberAndFirstAPIUpdate();
 
     return (
         <Styles>

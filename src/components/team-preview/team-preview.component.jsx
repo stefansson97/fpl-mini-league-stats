@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { players } from '../../players';
 
 const Styles = styled.div`
     position: fixed;
@@ -43,7 +42,7 @@ const Styles = styled.div`
 
 ` 
 
-function TeamPreview({ picks }) {
+function TeamPreview({ picks, players }) {
 
     return(
         <Styles>

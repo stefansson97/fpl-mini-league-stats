@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import styled from 'styled-components';
 import { ThemeContext } from './ThemeProvider';
-import Calculation, { getMiniLeagueName } from './calculation';
+import Calculation, { getMiniLeagueName, getPlayersData } from './calculation';
 import MiniLeagueIDInput from './components/ml-id-input/ml-id-input.component';
 import MiniLeagueTitle from './components/ml-title/ml-title.components';
 import SubmitButton from './components/submit-button/submit-button.component';
@@ -121,6 +121,8 @@ function App() {
     return (window.localStorage.getItem('miniLeagueID') || false)
   });
 
+  const [players, setPlayers] = useState('')
+
   const [error, setError] = useState('');
 
   const [showPreview, setShowPreview] = useState(false);
@@ -132,6 +134,15 @@ function App() {
     theme: {
       darkTheme: darkTheme  }
   }
+
+  useEffect(() => {
+    async function playersData() {
+      let data = await getPlayersData()
+      setPlayers(data)
+    }
+
+    playersData()
+  }, [])
 
   useEffect(() => {
     setTotalPages(Math.ceil(miniLeagueData.length / 20));
@@ -185,7 +196,7 @@ function App() {
     setPageNumber(prevValue => prevValue - 1);
   }, [setPageNumber])
 
-  const handleSuggestion = async (e) => {
+  const handleSuggestion = async () => {
     setMiniLeagueID(miniLeagueIDLocalStorage);
   }
 
@@ -216,7 +227,7 @@ function App() {
       <ThemeSwitch />
       <a href='https://i.imgur.com/6TS3j2d.png' className='mini-league-image-link' target='_blank' rel='noopener noreferrer'>What's the mini-league ID?</a>
       {miniLeagueName ? <MiniLeagueTitle miniLeagueName={miniLeagueName} /> : null}
-      {showPreview ? <TeamPreview picks={picks} /> : null}
+      {showPreview ? <TeamPreview picks={picks} players={players} /> : null}
       {isLoadingName || isLoadingData ? <Loading /> : (
         (standingsData && (standingsData.length > 0)) ? (
           <>
