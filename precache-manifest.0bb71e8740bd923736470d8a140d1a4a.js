@@ -1,23 +1,23 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "cc441c42715bcd5942ee1f88f69eca30",
+    "revision": "4254662db7c96ca6717caa8e481e4fc6",
     "url": "/fpl-mini-league-stats/index.html"
   },
   {
-    "revision": "cd7a5787f1f1f2e640ce",
+    "revision": "4b2baa2cbe6b3d1e7922",
     "url": "/fpl-mini-league-stats/static/css/main.34a1f70c.chunk.css"
   },
   {
-    "revision": "8491568686d119b8ce43",
-    "url": "/fpl-mini-league-stats/static/js/2.b3c65c63.chunk.js"
+    "revision": "fc3943e30bc45ebefad9",
+    "url": "/fpl-mini-league-stats/static/js/2.edd39fc0.chunk.js"
   },
   {
     "revision": "9b318b6fb13190fe82c0677e9264b3c7",
-    "url": "/fpl-mini-league-stats/static/js/2.b3c65c63.chunk.js.LICENSE.txt"
+    "url": "/fpl-mini-league-stats/static/js/2.edd39fc0.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "cd7a5787f1f1f2e640ce",
-    "url": "/fpl-mini-league-stats/static/js/main.d3938baa.chunk.js"
+    "revision": "4b2baa2cbe6b3d1e7922",
+    "url": "/fpl-mini-league-stats/static/js/main.cf52e3f0.chunk.js"
   },
   {
     "revision": "6ed4d6c1e42c808a835f",
