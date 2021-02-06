@@ -9,7 +9,7 @@ async function Calculation(miniLeagueID) {
     const players = await getPlayersData()
 
     const [bonusArray, playerPointsData, miniLeagueTeams] = await Promise.all([
-        getBonusPoints(gameweek),
+        getBonusPoints(gameweek, gameweekFixtures),
         getPlayerPointsData(gameweek),
         getMiniLeagueTeamsAndName(miniLeagueID, gameweek, players),
     ])
@@ -521,14 +521,12 @@ function checkIfGameStarted(playerTeamActivity, gameweekFixtures, dateNow) {
     return [hisGameStarted, hisGameEnded];
 }
 
-async function getBonusPoints(gameweek) {
-    let allFixtures = await axios.get(`${corsUrl}https://fantasy.premierleague.com/api/fixtures/`);
-    let thisGameweekFixtures = allFixtures.data.slice(gameweek * 10 - 10, gameweek * 10);
+async function getBonusPoints(gameweek, fixtures) {
     let dateNow = new Date();
     let dayNow = dateNow.getDate();
     //only consider fixtures that have started
 
-    let todayFixtures = thisGameweekFixtures.filter(fixture => {
+    let todayFixtures = fixtures.filter(fixture => {
         let fixtureDate = new Date(fixture.kickoff_time);
         let fixtureDay = fixtureDate.getDate();
         return (fixtureDate < dateNow && dayNow === fixtureDay)
